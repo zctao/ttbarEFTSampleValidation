@@ -10,7 +10,6 @@ pbs_header = """#!/bin/bash
 #PBS -m abe
 #PBS -M {email}
 #PBS -l nodes=1
-#PBS -V
 """
 
 setup_env = """
