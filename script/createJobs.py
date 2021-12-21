@@ -38,7 +38,7 @@ echo "randomSeed=$rngseed"
 jobOption={joboption}
 echo "Run sample production using JobOption $jobOption"
 
-Gen_tf.py --ecmEnergy=13000. --firstEvent=1 --maxEvents=1000 --randomSeed=$rngseed --jobConfig $jobOption --outputEVNTFile $outputDIR/ttbar_SA_{label}_100k.EVNT.root
+Gen_tf.py --ecmEnergy=13000. --firstEvent=1 --maxEvents=100000 --randomSeed=$rngseed --jobConfig $jobOption --outputEVNTFile $outputDIR/ttbar_SA_{label}_100k.EVNT.root
 """
 
 run_deriv = """
