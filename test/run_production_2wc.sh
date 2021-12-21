@@ -1,4 +1,4 @@
-outdir=/data/$USER/topEFT/output/latest
+outdir=$HOME/data/topEFT/output/latest
 
 python script/createJobs.py -o $outdir -c ctGRe ctu8 -v -0.3 -0.3
 python script/createJobs.py -o $outdir -c ctd8 cQj31 -v -0.3 -0.3
