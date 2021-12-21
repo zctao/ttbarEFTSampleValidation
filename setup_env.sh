@@ -11,4 +11,4 @@ else
 fi
 
 export SourceDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-export PYTHONPATH=$SourceDIR/script:$SourceDIR:$PYTHONPATH
+export PYTHONPATH=$SourceDIR/python:$SourceDIR/script:$SourceDIR:$PYTHONPATH
