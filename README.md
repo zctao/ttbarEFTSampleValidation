@@ -24,3 +24,7 @@ Or submit the generation and derivation steps separately:
   and after it's done, then
 
     qsub [options] <output_directory>/submit_deriv.sh
+    
+## To make comparison plot
+
+    python script/compareSamples.py -i <filepath to the reweight sample> <filepath to the standalone sample> -n <label> -o <output_name>
