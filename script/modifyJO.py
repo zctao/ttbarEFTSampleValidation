@@ -59,6 +59,11 @@ def modifyJO(template_file, coefficients, values, output):
             for c, v in zip(coefficients, values):
                 # look up the index of the Wilson coefficient
                 wc_block, wc_id = eft_dict[c][:2]
+
+                # in case of SMEFTcpv
+                if wc_block == 'SMEFTcpv':
+                    newline += f"params['SMEFTcpv'] = dict()\n"
+
                 # add to the new line
                 newline += f"params['{wc_block}']['{wc_id}'] = '{v}'\n"
             #print(newline)
