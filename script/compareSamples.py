@@ -6,6 +6,20 @@ from ROOT import TFile, TH1F, TCanvas, TRatioPlot, TLegend
 # weights map
 from weightsMap import weights_map
 
+def getWeightIndex(weight_name):
+    try:
+        return weights_map[weight_name]
+    except KeyError:
+        # try swapping the order of WCs
+        wnarr = weight_name.split('_')
+        if len(wnarr)==4:
+            alt_weight_name = wnarr[2]+'_'+wnarr[3]+'_'+wnarr[0]+'_'+wnarr[1]
+            try:
+                return weights_map[alt_weight_name]
+            except KeyError:
+                pass
+        raise
+
 def makeHistogramsTRUTH1(
     filepath,
     label,
@@ -35,7 +49,7 @@ def makeHistogramsTRUTH1(
     sumw = 0.
     for ievt in range(len(weights_arr)):
         # event weight
-        windex = weights_map[weight_name]
+        windex = getWeightIndex(weight_name)
         w = weights_arr[ievt][windex]
         h_weights.Fill(w)
         sumw += w
