@@ -1,10 +1,24 @@
 #!/usr/bin/env python3
-import uproot
-import numpy as np
+import os
+import math
+import time
 from ROOT import TFile, TH1F, TCanvas, TRatioPlot, TLegend
+
+from truth1DxAODAccessor import TruthParticleAccessor
 
 # weights map
 from weightsMap import weights_map
+
+def compute_dphi(phi1, phi2):
+    dphi = phi1 - phi2
+
+    while( dphi > math.pi):
+        dphi -= 2*math.pi
+
+    while( dphi < -math.pi ):
+        dphi += 2*math.pi
+
+    return dphi
 
 def getWeightIndex(weight_name):
     try:
@@ -20,6 +34,71 @@ def getWeightIndex(weight_name):
                 pass
         raise
 
+def setupHistograms(label):
+    print("Creating histograms")
+    histograms = dict()
+
+    # Event weights
+    h_weights = TH1F(f"h_weights_{label}", f"Event weights", 300, 300., 600.)
+    h_weights.GetXaxis().SetTitle("Event weight")
+    histograms['weights'] = h_weights
+
+    # Leading truth jet
+    h_truthjet0_pt = TH1F(f"h_jet0_pt_{label}", f"Leading AntiKt4TruthWZJets pT", 100, 0., 500.)
+    h_truthjet0_pt.GetXaxis().SetTitle("truth jet0 p_{T} [GeV]")
+    histograms['truthjet0_pt'] = h_truthjet0_pt
+
+    ###
+    for s in ['before', 'after']:
+        # ttbar
+        histograms[f'ttbar_{s}FSR_pt'] = TH1F(f"h_ttbar_{s}FSR_pt_{label}", f"TTbar ({s} FSR) pT", 100, 0., 1000.)
+        histograms[f'ttbar_{s}FSR_pt'].GetXaxis().SetTitle("p_{T}^{t#bar{t}} [GeV]"+f" ({s} FSR)")
+
+        histograms[f'ttbar_{s}FSR_eta'] = TH1F(f"h_ttbar_{s}FSR_eta_{label}", f"TTbar ({s} FSR) eta", 100, -5., 5.)
+        histograms[f'ttbar_{s}FSR_eta'].GetXaxis().SetTitle("#eta^{t#bar{t}}"+f" ({s} FSR)")
+
+        histograms[f'ttbar_{s}FSR_phi'] = TH1F(f"h_ttbar_{s}FSR_phi_{label}", f"TTbar ({s} FSR) phi", 100, -math.pi, math.pi)
+        histograms[f'ttbar_{s}FSR_phi'].GetXaxis().SetTitle("#phi^{t#bar{t}}"+f" ({s} FSR)")
+
+        histograms[f'ttbar_{s}FSR_m'] = TH1F(f"h_ttbar_{s}FSR_m_{label}", f"TTbar ({s} FSR) mass", 100, 0., 2000.)
+        histograms[f'ttbar_{s}FSR_m'].GetXaxis().SetTitle("m^{t#bar{t}} [GeV]"+f" ({s} FSR)")
+
+        histograms[f'ttbar_{s}FSR_dphi'] = TH1F(f"h_ttbar_{s}FSR_dphi_{label}", f"TTbar ({s} FSR) dphi", 100, 0., math.pi)
+        histograms[f'ttbar_{s}FSR_dphi'].GetXaxis().SetTitle("|#Delta#phi(t,#bar{t})|"+f" ({s} FSR)")
+
+        # t
+        histograms[f't_{s}FSR_pt'] = TH1F(f"h_t_{s}FSR_pt_{label}", f"Top ({s} FSR) pT", 100, 0., 1000.)
+        histograms[f't_{s}FSR_pt'].GetXaxis().SetTitle("p_{T}^{t} [GeV]"+f" ({s} FSR)")
+
+        histograms[f't_{s}FSR_eta'] = TH1F(f"h_t_{s}FSR_eta_{label}", f"Top ({s} FSR) eta", 100, -5., 5.)
+        histograms[f't_{s}FSR_eta'].GetXaxis().SetTitle("#eta^{t}"+f" ({s} FSR)")
+
+        histograms[f't_{s}FSR_phi'] = TH1F(f"h_t_{s}FSR_phi_{label}", f"Top ({s} FSR) phi", 100, -math.pi, math.pi)
+        histograms[f't_{s}FSR_phi'].GetXaxis().SetTitle("#phi^{t}"+f" ({s} FSR)")
+
+        histograms[f't_{s}FSR_m'] = TH1F(f"h_t_{s}FSR_m_{label}", f"Top ({s} FSR) mass", 100, 0., 500.)
+        histograms[f't_{s}FSR_m'].GetXaxis().SetTitle("m^{t} [GeV]"+f" ({s} FSR)")
+
+        # tbar
+        histograms[f'tbar_{s}FSR_pt'] = TH1F(f"h_tbar_{s}FSR_pt_{label}", f"Tbar ({s} FSR) pT", 100, 0., 1000.)
+        histograms[f'tbar_{s}FSR_pt'].GetXaxis().SetTitle("p_{T}^{#bar{t}} [GeV]"+f" ({s} FSR)")
+
+        histograms[f'tbar_{s}FSR_eta'] = TH1F(f"h_tbar_{s}FSR_eta_{label}", f"Tbar ({s} FSR) eta", 100, -5., 5.)
+        histograms[f'tbar_{s}FSR_eta'].GetXaxis().SetTitle("#eta^{#bar{t}}"+f" ({s} FSR)")
+
+        histograms[f'tbar_{s}FSR_phi'] = TH1F(f"h_tbar_{s}FSR_phi_{label}", f"Tbar ({s} FSR) phi", 100, -math.pi, math.pi)
+        histograms[f'tbar_{s}FSR_phi'].GetXaxis().SetTitle("#phi^{#bar{t}}"+f" ({s} FSR)")
+
+        histograms[f'tbar_{s}FSR_m'] = TH1F(f"h_tbar_{s}FSR_m_{label}", f"Tbar ({s} FSR) mass", 100, 0., 500.)
+        histograms[f'tbar_{s}FSR_m'].GetXaxis().SetTitle("m^{#bar{t}} [GeV]"+f" ({s} FSR)")
+
+    # end of for s in ['before', 'after']:
+
+    for hkey, hobj in histograms.items():
+        hobj.Sumw2()
+
+    return histograms
+
 def makeHistogramsTRUTH1(
     filepath,
     label,
@@ -27,86 +106,128 @@ def makeHistogramsTRUTH1(
     treename = "CollectionTree"
     ):
 
-    print(f"Read TTree from input file {filepath}")
-    tree = uproot.open(filepath+":"+treename)
+    tpa = TruthParticleAccessor(filepath, treename)
 
-    # event weights
-    weights_arr = tree["EventInfoAuxDyn.mcEventWeights"].array()
-
-    # variables to plot
-    truthjets_pt = tree["AntiKt4TruthWZJetsAux.pt"].array()
-
-    print("Making histograms")
     # define histograms
-    h_weights = TH1F(f"h_weights_{label}", f"Event weights", 300, 300., 600.)
-    h_weights.GetXaxis().SetTitle("Event weight")
-    h_weights.Sumw2()
+    hists_d = setupHistograms(label)
 
-    h_truthjet0_pt = TH1F(f"h_jet0_pt_{label}", f"Leading AntiKt4TruthWZJets pT", 100, 0., 500.)
-    h_truthjet0_pt.GetXaxis().SetTitle("truth jet0 p_{T} [GeV]")
-    h_truthjet0_pt.Sumw2()
+    # arrays
+    weights_arr = tpa.event_weights()
+    truthjets_pt = tpa.truth_jets_pt()
 
+    print("Loop over events")
+    t_start = time.time()
     sumw = 0.
-    for ievt in range(len(weights_arr)):
+    for ievt in range( len(tpa) ):
+        if not ievt%10000:
+            print(f"Processing event #{ievt}")
+
         # event weight
         windex = getWeightIndex(weight_name)
         w = weights_arr[ievt][windex]
-        h_weights.Fill(w)
+        hists_d['weights'].Fill(w)
         sumw += w
 
         # leading truth jet pt
-        jet0_pt = truthjets_pt[ievt][0] / 1000. # MeV to GeV
-        h_truthjet0_pt.Fill(jet0_pt, w)
+        truthjet0_pt = truthjets_pt[ievt][0] / 1000. # MeV to GeV
+        hists_d['truthjet0_pt'].Fill(truthjet0_pt, w)
+
+        # truth top, anti-top, ttbar
+        # Before FSR
+        t_p4_before = tpa.getTruthTopP4(ievt, istbar=False, afterFSR=False)
+        tbar_p4_before = tpa.getTruthTopP4(ievt, istbar=True, afterFSR=False)
+        ttbar_p4_before = t_p4_before + tbar_p4_before
+
+        hists_d['ttbar_beforeFSR_pt'].Fill(ttbar_p4_before.Pt()/1000., w)
+        hists_d['ttbar_beforeFSR_eta'].Fill(ttbar_p4_before.Eta(), w)
+        hists_d['ttbar_beforeFSR_phi'].Fill(ttbar_p4_before.Phi(), w)
+        hists_d['ttbar_beforeFSR_m'].Fill(ttbar_p4_before.M()/1000., w)
+
+        hists_d['ttbar_beforeFSR_dphi'].Fill(abs(compute_dphi(t_p4_before.Phi(), tbar_p4_before.Phi())), w)
+
+        hists_d['t_beforeFSR_pt'].Fill(t_p4_before.Pt()/1000., w)
+        hists_d['t_beforeFSR_eta'].Fill(t_p4_before.Eta(), w)
+        hists_d['t_beforeFSR_phi'].Fill(t_p4_before.Phi(), w)
+        hists_d['t_beforeFSR_m'].Fill(t_p4_before.M()/1000., w)
+
+        hists_d['tbar_beforeFSR_pt'].Fill(tbar_p4_before.Pt()/1000., w)
+        hists_d['tbar_beforeFSR_eta'].Fill(tbar_p4_before.Eta(), w)
+        hists_d['tbar_beforeFSR_phi'].Fill(tbar_p4_before.Phi(), w)
+        hists_d['tbar_beforeFSR_m'].Fill(tbar_p4_before.M()/1000., w)
+
+        # After FSR
+        t_p4_after = tpa.getTruthTopP4(ievt, istbar=False, afterFSR=True)
+        tbar_p4_after = tpa.getTruthTopP4(ievt, istbar=True, afterFSR=True)
+        ttbar_p4_after = t_p4_after + tbar_p4_after
+
+        hists_d['ttbar_afterFSR_pt'].Fill(ttbar_p4_after.Pt()/1000., w)
+        hists_d['ttbar_afterFSR_eta'].Fill(ttbar_p4_after.Eta(), w)
+        hists_d['ttbar_afterFSR_phi'].Fill(ttbar_p4_after.Phi(), w)
+        hists_d['ttbar_afterFSR_m'].Fill(ttbar_p4_after.M()/1000., w)
+
+        hists_d['ttbar_afterFSR_dphi'].Fill(abs(compute_dphi(t_p4_after.Phi(), tbar_p4_after.Phi())), w)
+
+        hists_d['t_afterFSR_pt'].Fill(t_p4_after.Pt()/1000., w)
+        hists_d['t_afterFSR_eta'].Fill(t_p4_after.Eta(), w)
+        hists_d['t_afterFSR_phi'].Fill(t_p4_after.Phi(), w)
+        hists_d['t_afterFSR_m'].Fill(t_p4_after.M()/1000., w)
+
+        hists_d['tbar_afterFSR_pt'].Fill(tbar_p4_after.Pt()/1000., w)
+        hists_d['tbar_afterFSR_eta'].Fill(tbar_p4_after.Eta(), w)
+        hists_d['tbar_afterFSR_phi'].Fill(tbar_p4_after.Phi(), w)
+        hists_d['tbar_afterFSR_m'].Fill(tbar_p4_after.M()/1000., w)
 
     print(f"Total weights: {sumw}")
 
-    return h_weights, h_truthjet0_pt
+    t_done = time.time()
+    print(f"Total processing time: {t_done - t_start:.2f} seconds")
 
-def plotHistograms(figname, histogram_list1, histogram_list2, label1, label2, title):
-    canvas = TCanvas("c")
-    canvas.Print(figname+'[')
+    return hists_d
 
-    for hist1, hist2 in zip(histogram_list1, histogram_list2):
-        ymax = max(hist1.GetMaximum(), hist2.GetMaximum())
-        ymax *= 1.2
+def plotHistograms(figname, hist1, hist2, label1, label2, title, canvas=None):
+    if canvas is None:
+        canvas = TCanvas("canvas")
 
-        hist1.SetStats(0)
-        hist1.Rebin(4)
-        hist1.SetLineColor(2) # red
+    hist1.SetStats(0)
+    hist1.Rebin(4)
+    hist1.SetLineColor(2) # red
 
-        hist2.SetStats(0)        
-        hist2.Rebin(4)
-        hist2.SetLineColor(1) # black
+    hist2.SetStats(0)
+    hist2.Rebin(4)
+    hist2.SetLineColor(1) # black
 
-        if title:
-            hist1.SetTitle(title)
+    ymax = max(hist1.GetMaximum(), hist2.GetMaximum())
+    hist1.SetMaximum(ymax*1.2)
+    hist2.SetMaximum(ymax*1.2)
 
-        rp = TRatioPlot(hist1, hist2)
-        rp.SetH1DrawOpt("hist")
-        rp.SetH2DrawOpt("hist")
-        rp.SetGridlines([1.])
-        rp.Draw()
+    if title:
+        hist1.SetTitle(title)
 
-        rp.GetUpperRefYaxis().SetTitle("Events")
-        rp.GetLowerRefYaxis().SetTitle("Ratio")
-        rp.GetLowerRefYaxis().CenterTitle()
-        rp.GetLowYaxis().SetNdivisions(505)
+    rp = TRatioPlot(hist1, hist2, 'divsym')
+    rp.SetH1DrawOpt("hist")
+    rp.SetH2DrawOpt("hist")
+    rp.SetGridlines([1.])
+    rp.Draw()
 
-        # legend
-        leg = TLegend(0.68,0.80,0.88,0.90)
-        leg.AddEntry(hist1, label1, "l")
-        leg.AddEntry(hist2, label2, "l")
-        leg.Draw("same")
+    rp.GetUpperRefYaxis().SetTitle("Events")
+    rp.GetUpperRefYaxis().SetMaxDigits(3)
+    rp.GetLowerRefYaxis().SetTitle("Ratio")
+    rp.GetLowerRefYaxis().CenterTitle()
+    rp.GetLowYaxis().SetNdivisions(505)
 
-        canvas.Print(figname)
+    # legend
+    leg = TLegend(0.68,0.80,0.88,0.90)
+    leg.AddEntry(hist1, label1, "l")
+    leg.AddEntry(hist2, label2, "l")
+    leg.Draw("same")
 
-    canvas.Print(figname+']')
+    canvas.SaveAs(figname)
 
 def compareSamples(
     filepath_rw,
     filepath_sa,
     wc_name,
-    output_name,
+    output_dir,
     tree_name="CollectionTree"
     ):
 
@@ -116,23 +237,26 @@ def compareSamples(
     # standalone sample
     histograms_sa = makeHistogramsTRUTH1(filepath_sa, f"sa_{wc_name}", "Default", tree_name)
 
-    # plot histograms
-    figname = output_name+'.pdf'
-    print(f"Plot histograms to {figname}")
-    plotHistograms(
-        figname, histograms_rw, histograms_sa, 'Reweight', 'Standalone',
-        title = wc_name
-        )
-
     # save histograms to disk
-    print(f"Create output file {output_name}")
-    outfile = TFile.Open(output_name+'.root', "recreate")
-    for hrw in histograms_rw:
+    fname_root = os.path.join(output_dir, 'histograms.root')
+    print(f"Save histograms to {fname_root}")
+    outfile = TFile.Open(fname_root, "recreate")
+    for hkey, hrw in histograms_rw.items():
         outfile.WriteTObject(hrw)
 
-    for hsa in histograms_sa:
+    for hkey, hsa in histograms_sa.items():
         outfile.WriteTObject(hsa)
     outfile.Close()
+
+    # plot histograms
+    print("Plot histograms")
+    for hkey in histograms_rw:
+        plotHistograms(
+            os.path.join(output_dir, f'{hkey}.pdf'),
+            histograms_rw[hkey], histograms_sa[hkey],
+            'Reweight', 'Standalone',
+            title = wc_name
+        )
 
 if __name__ == "__main__":
 
@@ -144,9 +268,12 @@ if __name__ == "__main__":
                         help="File paths to the reweight and standalone samples")
     parser.add_argument('-n', '--name', type=str, required=True,
                         help="Name of the Wilson cofficients and their value")
-    parser.add_argument('-o', "--output", type=str, default="validation",
+    parser.add_argument('-o', "--outputdir", type=str, default="validation",
                         help="Output name")
 
     args = parser.parse_args()
 
-    compareSamples(args.infiles[0], args.infiles[1], args.name, args.output)
+    if not os.path.isdir(args.outputdir):
+        os.makedirs(args.outputdir)
+
+    compareSamples(args.infiles[0], args.infiles[1], args.name, args.outputdir)
