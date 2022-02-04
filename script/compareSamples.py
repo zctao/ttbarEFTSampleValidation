@@ -199,6 +199,8 @@ def plotHistograms(figname, hist1, hist2, label1, label2, title, canvas=None):
     ymax = max(hist1.GetMaximum(), hist2.GetMaximum())
     hist1.SetMaximum(ymax*1.2)
     hist2.SetMaximum(ymax*1.2)
+    hist1.SetMinimum(0)
+    hist2.SetMinimum(0)
 
     if title:
         hist1.SetTitle(title)
@@ -209,13 +211,73 @@ def plotHistograms(figname, hist1, hist2, label1, label2, title, canvas=None):
     rp.SetGridlines([1.])
     rp.Draw()
 
-    rp.GetUpperRefYaxis().SetTitle("Events")
+    rp.GetUpperRefYaxis().SetTitle("Weighted events")
     rp.GetUpperRefYaxis().SetMaxDigits(3)
     rp.GetLowerRefYaxis().SetTitle("Ratio")
     rp.GetLowerRefYaxis().CenterTitle()
     rp.GetLowYaxis().SetNdivisions(505)
 
     # legend
+    leg = TLegend(0.68,0.80,0.88,0.90)
+    leg.AddEntry(hist1, label1, "l")
+    leg.AddEntry(hist2, label2, "l")
+    leg.Draw("same")
+
+    canvas.SaveAs(figname)
+
+def plotHistograms_ErrOpt2(figname, hist1, hist2, label1, label2, title, canvas=None):
+    if canvas is None:
+        canvas = TCanvas("canvas")
+
+    hist1.SetStats(0)
+    hist1.Rebin(4)
+    hist1.SetLineColor(2) # red
+
+    hist2.SetStats(0)
+    hist2.Rebin(4)
+    hist2.SetLineColor(1) # black
+
+    ymax = max(hist1.GetMaximum(), hist2.GetMaximum())
+    hist1.SetMaximum(ymax*1.2)
+    hist2.SetMaximum(ymax*1.2)
+    hist1.SetMinimum(0)
+    hist2.SetMinimum(0)
+
+    if title:
+        hist1.SetTitle(title)
+
+    # hist2 but with zero bin errors
+    hist2_noberr = hist2.Clone()
+    nbins = hist2_noberr.GetNbinsX()
+    for ibin in range(nbins+2): # include underflow and overflow bins
+        hist2_noberr.SetBinError(ibin, 0.)
+
+    # For displaying hist2 error bars on the ratio plot
+    rp2 = TRatioPlot(hist2, hist2_noberr, 'divsym')
+    rp2.Draw() # need to call Draw() first
+    gr = rp2.GetLowerRefGraph()
+    canvas.Clear()
+
+    # Draw the actual ratio plot
+    rp = TRatioPlot(hist1, hist2_noberr, 'divsym')
+    rp.SetH1DrawOpt("hist")
+    rp.SetH2DrawOpt("hist")
+    rp.SetGraphDrawOpt("apz")
+    rp.SetGridlines([1.])
+    rp.Draw()
+
+    rp.GetUpperRefYaxis().SetTitle("Events")
+    rp.GetUpperRefYaxis().SetMaxDigits(3)
+    rp.GetLowerRefYaxis().SetTitle("Ratio")
+    rp.GetLowerRefYaxis().CenterTitle()
+    rp.GetLowYaxis().SetNdivisions(505)
+
+    rp.GetLowerPad().cd()
+    gr.SetFillColorAlpha(1, 0.35)
+    gr.Draw("same 2")
+
+    # legend
+    rp.GetUpperPad().cd()
     leg = TLegend(0.68,0.80,0.88,0.90)
     leg.AddEntry(hist1, label1, "l")
     leg.AddEntry(hist2, label2, "l")
@@ -251,10 +313,11 @@ def compareSamples(
     # plot histograms
     print("Plot histograms")
     for hkey in histograms_rw:
-        plotHistograms(
+        #plotHistograms(
+        plotHistograms_ErrOpt2(
             os.path.join(output_dir, f'{hkey}.pdf'),
-            histograms_rw[hkey], histograms_sa[hkey],
-            'Reweight', 'Standalone',
+            histograms_sa[hkey], histograms_rw[hkey],
+            'Standalone', 'Reweight',
             title = wc_name
         )
 
