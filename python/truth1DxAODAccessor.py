@@ -37,6 +37,9 @@ class TruthParticleAccessor():
     def truth_jets_pt(self):
         return self.tree["AntiKt4TruthJetsAux.pt"].array(library=self.array_lib)
 
+    def truth_jets_eta(self):
+        return self.tree["AntiKt4TruthJetsAux.eta"].array(library=self.array_lib)
+
     ####
     # Parton history methods
     def getTruthParticleP4(self, ievent, pdgid, status):
