@@ -35,7 +35,7 @@ class TruthParticleAccessor():
         return self.tree["EventInfoAuxDyn.mcEventWeights"].array(library=self.array_lib)
 
     def truth_jets_pt(self):
-        return self.tree["AntiKt4TruthWZJetsAux.pt"].array(library=self.array_lib)
+        return self.tree["AntiKt4TruthJetsAux.pt"].array(library=self.array_lib)
 
     ####
     # Parton history methods

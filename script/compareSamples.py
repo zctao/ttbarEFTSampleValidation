@@ -39,14 +39,27 @@ def setupHistograms(label):
     histograms = dict()
 
     # Event weights
-    h_weights = TH1F(f"h_weights_{label}", f"Event weights", 300, 300., 600.)
-    h_weights.GetXaxis().SetTitle("Event weight")
-    histograms['weights'] = h_weights
+    histograms['weights'] = TH1F(f"h_weights_{label}", f"Event weights", 300, 300., 600.)
+    histograms['weights'].GetXaxis().SetTitle("Event weight")
 
-    # Leading truth jet
-    h_truthjet0_pt = TH1F(f"h_jet0_pt_{label}", f"Leading AntiKt4TruthWZJets pT", 100, 0., 500.)
-    h_truthjet0_pt.GetXaxis().SetTitle("truth jet0 p_{T} [GeV]")
-    histograms['truthjet0_pt'] = h_truthjet0_pt
+    # Truth jet
+    histograms['truthjet0_pt'] = TH1F(f"h_jet0_pt_{label}", f"Leading truth jet pT", 100, 0., 500.)
+    histograms['truthjet0_pt'].GetXaxis().SetTitle("Leading truth jet p_{T} [GeV]")
+
+    histograms['truthjet1_pt'] = TH1F(f"h_jet1_pt_{label}", f"Sub-leading truth jet pT", 100, 0., 500.)
+    histograms['truthjet1_pt'].GetXaxis().SetTitle("Sub-leading truth jet p_{T} [GeV]")
+
+    histograms['truthjet2_pt'] = TH1F(f"h_jet2_pt_{label}", f"Third truth jet pT", 100, 0., 500.)
+    histograms['truthjet2_pt'].GetXaxis().SetTitle("3rd truth jet p_{T} [GeV]")
+
+    histograms['truthjet3_pt'] = TH1F(f"h_jet3_pt_{label}", f"Fourth truth jet pT", 100, 0., 500.)
+    histograms['truthjet3_pt'].GetXaxis().SetTitle("4th truth jet p_{T} [GeV]")
+
+    histograms['truthjet4_pt'] = TH1F(f"h_jet4_pt_{label}", f"Fifth truth jet pT", 100, 0., 500.)
+    histograms['truthjet4_pt'].GetXaxis().SetTitle("5th truth jet p_{T} [GeV]")
+
+    histograms['truthjet5_pt'] = TH1F(f"h_jet5_pt_{label}", f"Sixth truth jet pT", 100, 0., 500.)
+    histograms['truthjet5_pt'].GetXaxis().SetTitle("6th truth jet p_{T} [GeV]")
 
     ###
     for s in ['before', 'after']:
@@ -153,9 +166,21 @@ def makeHistogramsTRUTH1(
         hists_d['weights'].Fill(w)
         sumw += w
 
-        # leading truth jet pt
-        truthjet0_pt = truthjets_pt[ievt][0] / 1000. # MeV to GeV
-        hists_d['truthjet0_pt'].Fill(truthjet0_pt, w)
+        # truth jets pt
+        ntruthjets = len(truthjets_pt[ievt])
+
+        if ntruthjets > 0:
+            hists_d['truthjet0_pt'].Fill(truthjets_pt[ievt][0]/1000., w) # MeV to GeV
+        if ntruthjets > 1:
+            hists_d['truthjet1_pt'].Fill(truthjets_pt[ievt][1]/1000., w)
+        if ntruthjets > 2:
+            hists_d['truthjet2_pt'].Fill(truthjets_pt[ievt][2]/1000., w)
+        if ntruthjets > 3:
+            hists_d['truthjet3_pt'].Fill(truthjets_pt[ievt][3]/1000., w)
+        if ntruthjets > 4:
+            hists_d['truthjet4_pt'].Fill(truthjets_pt[ievt][4]/1000., w)
+        if ntruthjets > 5:
+            hists_d['truthjet5_pt'].Fill(truthjets_pt[ievt][5]/1000., w)
 
         # truth top, anti-top, ttbar
         # Before FSR
