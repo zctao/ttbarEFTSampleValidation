@@ -2,7 +2,7 @@
 import os
 import math
 import time
-from ROOT import TFile, TH1F, TCanvas, TRatioPlot, TLegend
+from ROOT import TFile, TH1F, TCanvas, TRatioPlot, TLegend, TLatex
 
 from truth1DxAODAccessor import TruthParticleAccessor
 
@@ -327,6 +327,9 @@ def plotHistograms_ErrOpt2(figname, hist1, hist2, label1, label2, title, canvas=
     hist2.Rebin(4)
     hist2.SetLineColor(1) # black
 
+    # Compute Chi2/NDF between the two histograms
+    chi2_per_ndf = hist1.Chi2Test(hist2, "WW OF UF CHI2/NDF")
+
     ymax = max(hist1.GetMaximum(), hist2.GetMaximum())
     hist1.SetMaximum(ymax*1.2)
     hist2.SetMaximum(ymax*1.2)
@@ -372,6 +375,12 @@ def plotHistograms_ErrOpt2(figname, hist1, hist2, label1, label2, title, canvas=
     leg.AddEntry(hist1, label1, "l")
     leg.AddEntry(hist2, label2, "l")
     leg.Draw("same")
+
+    # Draw chi2/ndf to the canvas
+    rp.GetUpperPad().cd()
+    lt = TLatex()
+    lt.SetTextSize(0.04)
+    lt.DrawLatexNDC(0.7, 0.75, "#chi^{2}/NDF = "+f"{chi2_per_ndf:.3f}")
 
     canvas.SaveAs(figname)
 
