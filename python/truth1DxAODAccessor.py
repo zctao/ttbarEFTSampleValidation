@@ -39,52 +39,62 @@ class TruthParticleAccessor():
 
     ####
     # Parton history methods
-    def getTruthTopP4(self, ievent, istbar, afterFSR):
+    def getTruthParticleP4(self, ievent, pdgid, status):
         """
-        Return the Lorentz vector (ROOT.Math.PxPyPzMVector) of the truth top
+        Return the Lorentz vector of the specified truth particle
+        (ROOT.Math.PxPyPzMVector)
         """
-
-        target_id = -6 if istbar else 6
-        
         truth_particles = self.truth_particles_arr[ievent]
 
         for i, pid in enumerate(truth_particles["TruthParticlesAux.pdgId"]):
-            if pid != target_id:
+            if pid != pdgid:
                 continue
 
-            # Check if it is the last (or first) top based on the status code
-            # Pythia8 only
-            status = truth_particles["TruthParticlesAux.status"][i]
+            # check status
+            st = truth_particles["TruthParticlesAux.status"][i]
+            if st != status:
+                continue
 
-            if afterFSR:
-                if status != 62:
-                    continue
-            else:
-                if status != 22:
-                    continue
-
-            # Construct Lorentz vector
-            top_p4 = ROOT.Math.PxPyPzMVector(
+            # found the particle
+            # construct Lorentz Vector
+            p4 = ROOT.Math.PxPyPzMVector(
                 truth_particles["TruthParticlesAux.px"][i],
                 truth_particles["TruthParticlesAux.py"][i],
                 truth_particles["TruthParticlesAux.pz"][i],
-                truth_particles["TruthParticlesAux.m"][i])
+                truth_particles["TruthParticlesAux.m"][i]
+                )
 
-            return top_p4
+            return p4
 
         return None
+
+    def getTruthP4_top(self, ievent, afterFSR):
+        status = 62 if afterFSR else 22 # Pythia 8 only
+        return self.getTruthParticleP4(ievent, 6, status)
+
+    def getTruthP4_antitop(self, ievent, afterFSR):
+        status = 62 if afterFSR else 22  # Pythia 8 only
+        return self.getTruthParticleP4(ievent, -6, status)
+
+    def getTruthP4_Wp(self, ievent):
+        status = 22 # Pythia 8 only
+        return self.getTruthParticleP4(ievent, 24, status)
+
+    def getTruthP4_Wm(self, ievent):
+        status = 22 # Pythia 8 only
+        return self.getTruthParticleP4(ievent, -24, status)
 
     def getTruthTTbarP4(self, ievent, afterFSR):
         """
         Return the Lorentz vector of ttbar
         """
 
-        t_p4 = self.getTruthTopP4(ievent, istbar=False, afterFSR=afterFSR)
+        t_p4 = self.getTruthP4_top(ievent, afterFSR=afterFSR)
         if t_p4 is None:
             print("Fail to find the required top quark in the truth particles")
             return None
 
-        tbar_p4 = self.getTruthTopP4(ievent, istbar=True, afterFSR=afterFSR)
+        tbar_p4 = self.getTruthP4_antitop(ievent, afterFSR=afterFSR)
         if tbar_p4 is None:
             print("Fail to find the required anti-top quark in the truth particles")
             return None

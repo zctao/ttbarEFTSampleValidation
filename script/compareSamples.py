@@ -94,6 +94,31 @@ def setupHistograms(label):
 
     # end of for s in ['before', 'after']:
 
+    # W bosons
+    histograms["Wp_pt"] = TH1F(f"h_Wp_pt_{label}", "W+ pT", 100, 0., 1000.)
+    histograms["Wp_pt"].GetXaxis().SetTitle("p_{T}^{W^{+}} [GeV]")
+
+    histograms["Wp_eta"] = TH1F(f"h_Wp_eta_{label}", "W+ eta", 100, -5, 5.)
+    histograms["Wp_eta"].GetXaxis().SetTitle("#eta^{W^{+}}")
+
+    histograms["Wp_phi"] = TH1F(f"h_Wp_phi_{label}", "W+ phi", 100, -math.pi, math.pi)
+    histograms["Wp_phi"].GetXaxis().SetTitle("#phi^{W^{+}}")
+
+    histograms["Wp_m"] = TH1F(f"h_Wp_m_{label}", "W+ mass", 100, 0., 250.)
+    histograms["Wp_m"].GetXaxis().SetTitle("m^{W^{+}} [GeV]")
+
+    histograms["Wm_pt"] = TH1F(f"h_Wm_pt_{label}", "W- pT", 100, 0., 1000.)
+    histograms["Wm_pt"].GetXaxis().SetTitle("p_{T}^{W^{-}} [GeV]")
+
+    histograms["Wm_eta"] = TH1F(f"h_Wm_eta_{label}", "W- eta", 100, -5, 5.)
+    histograms["Wm_eta"].GetXaxis().SetTitle("#eta^{W^{-}}")
+
+    histograms["Wm_phi"] = TH1F(f"h_Wm_phi_{label}", "W- phi", 100, -math.pi, math.pi)
+    histograms["Wm_phi"].GetXaxis().SetTitle("#phi^{W^{-}}")
+
+    histograms["Wm_m"] = TH1F(f"h_Wm_m_{label}", "W- mass", 100, 0., 250.)
+    histograms["Wm_m"].GetXaxis().SetTitle("m^{W^{-}} [GeV]")
+
     for hkey, hobj in histograms.items():
         hobj.Sumw2()
 
@@ -134,8 +159,8 @@ def makeHistogramsTRUTH1(
 
         # truth top, anti-top, ttbar
         # Before FSR
-        t_p4_before = tpa.getTruthTopP4(ievt, istbar=False, afterFSR=False)
-        tbar_p4_before = tpa.getTruthTopP4(ievt, istbar=True, afterFSR=False)
+        t_p4_before = tpa.getTruthP4_top(ievt, afterFSR=False)
+        tbar_p4_before = tpa.getTruthP4_antitop(ievt, afterFSR=False)
         ttbar_p4_before = t_p4_before + tbar_p4_before
 
         hists_d['ttbar_beforeFSR_pt'].Fill(ttbar_p4_before.Pt()/1000., w)
@@ -156,8 +181,8 @@ def makeHistogramsTRUTH1(
         hists_d['tbar_beforeFSR_m'].Fill(tbar_p4_before.M()/1000., w)
 
         # After FSR
-        t_p4_after = tpa.getTruthTopP4(ievt, istbar=False, afterFSR=True)
-        tbar_p4_after = tpa.getTruthTopP4(ievt, istbar=True, afterFSR=True)
+        t_p4_after = tpa.getTruthP4_top(ievt, afterFSR=True)
+        tbar_p4_after = tpa.getTruthP4_antitop(ievt, afterFSR=True)
         ttbar_p4_after = t_p4_after + tbar_p4_after
 
         hists_d['ttbar_afterFSR_pt'].Fill(ttbar_p4_after.Pt()/1000., w)
@@ -176,6 +201,22 @@ def makeHistogramsTRUTH1(
         hists_d['tbar_afterFSR_eta'].Fill(tbar_p4_after.Eta(), w)
         hists_d['tbar_afterFSR_phi'].Fill(tbar_p4_after.Phi(), w)
         hists_d['tbar_afterFSR_m'].Fill(tbar_p4_after.M()/1000., w)
+
+        # W bosons
+        Wp_p4 = tpa.getTruthP4_Wp(ievt)
+        Wm_p4 = tpa.getTruthP4_Wm(ievt)
+
+        # W+
+        hists_d['Wp_pt'].Fill(Wp_p4.Pt()/1000., w)
+        hists_d['Wp_eta'].Fill(Wp_p4.Eta(), w)
+        hists_d['Wp_phi'].Fill(Wp_p4.Phi(), w)
+        hists_d['Wp_m'].Fill(Wp_p4.M()/1000., w)
+
+        # W-
+        hists_d['Wm_pt'].Fill(Wm_p4.Pt()/1000., w)
+        hists_d['Wm_eta'].Fill(Wm_p4.Eta(), w)
+        hists_d['Wm_phi'].Fill(Wm_p4.Phi(), w)
+        hists_d['Wm_m'].Fill(Wm_p4.M()/1000., w)
 
     print(f"Total weights: {sumw}")
 
