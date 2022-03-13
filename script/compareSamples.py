@@ -39,8 +39,14 @@ def setupHistograms(label):
     histograms = dict()
 
     # Event weights
-    histograms['weights'] = TH1F(f"h_weights_{label}", f"Event weights", 300, 300., 600.)
+    histograms['weights'] = TH1F(f"h_weights_{label}", f"Event weights", 200, 350., 550.)
     histograms['weights'].GetXaxis().SetTitle("Event weight")
+
+    histograms['weights_lowpt'] = TH1F(f"h_weights_lowpt_{label}", f"Event weights (top pT < 700 GeV)", 200, 350., 550.)
+    histograms['weights_lowpt'].GetXaxis().SetTitle("Event weight")
+
+    histograms['weights_highpt'] = TH1F(f"h_weights_highpt_{label}", f"Event weights (top pT > 700 GeV)", 200, 350., 550.)
+    histograms['weights_highpt'].GetXaxis().SetTitle("Event weight")
 
     # Truth jet
     histograms['truthjet0_pt'] = TH1F(f"h_jet0_pt_{label}", f"Leading truth jet pT", 100, 0., 500.)
@@ -266,6 +272,12 @@ def makeHistogramsTRUTH1(
         hists_d['Wm_eta'].Fill(Wm_p4.Eta(), w)
         hists_d['Wm_phi'].Fill(Wm_p4.Phi(), w)
         hists_d['Wm_m'].Fill(Wm_p4.M()/1000., w)
+
+        # Event weights for low and high top pT
+        if t_p4_before.Pt()/1000. < 700.:
+            hists_d['weights_lowpt'].Fill(w)
+        else:
+            hists_d['weights_highpt'].Fill(w)
 
     print(f"Total weights: {sumw}")
 
