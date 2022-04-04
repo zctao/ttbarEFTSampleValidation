@@ -22,7 +22,7 @@ def rebin(ngroup, edges, values, errors):
 
     return new_edges, new_values, new_errors
 
-def plotRatio(ax, hist1, hist2, merge_every_nbins=4, xlabel=None, ylabel=None):
+def plotRatio(ax, hist1, hist2, merge_every_nbins=4, title=None, xlabel=None, ylabel=None):
 
     bin_edges = hist1.axis().edges()
     assert(np.all(bin_edges == hist2.axis().edges()))
@@ -70,6 +70,9 @@ def plotRatio(ax, hist1, hist2, merge_every_nbins=4, xlabel=None, ylabel=None):
         bin_center, ratio, xerr = bin_width/2, yerr = ratio_err,
         marker='', drawstyle= 'steps-mid', linestyle='-', color='tab:red',
         label='Standalone')
+
+    if title is not None:
+        ax.set_title(title)
 
     if xlabel is not None:
         ax.set_xlabel(xlabel)
@@ -120,6 +123,7 @@ def makeSummaryPlots(
 
         nlabels = len(label_list)
         fig, axes = plt.subplots(nlabels, figsize=(6, 1.5*nlabels), sharex=True)
+        plt.subplots_adjust(hspace = 0.5)
 
         for l, fn, ax in zip(label_list, infiles, axes):
             print(f" {l}")
@@ -131,7 +135,7 @@ def makeSummaryPlots(
 
             plotRatio(
                 ax, hist_sa, hist_rw,
-                ylabel=l)
+                title=l)
 
         # x-axis label
         axes[-1].set_xlabel(
@@ -139,7 +143,7 @@ def makeSummaryPlots(
             )
 
         # legend
-        axes[0].legend(bbox_to_anchor=(0.5, 1.02), loc="lower center", ncol=2)
+        axes[0].legend(bbox_to_anchor=(1.0, 1.25), loc="lower right", ncol=2)
 
         print(f"Create plot {figname}")
         fig.savefig(figname, dpi=300)
@@ -171,7 +175,7 @@ if __name__ == "__main__":
 
     # output directory
     outdir = os.path.dirname(args.output)
-    if not os.path.isdir(outdir):
+    if outdir and not os.path.isdir(outdir):
         print(f"Create output directory {outdir}")
         os.makedirs(outdir)
 
