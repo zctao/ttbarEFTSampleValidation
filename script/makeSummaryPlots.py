@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 import os
 import sys
+import re
 import uproot
 import numpy as np
+from scipy import stats
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 
@@ -22,7 +24,7 @@ def rebin(ngroup, edges, values, errors):
 
     return new_edges, new_values, new_errors
 
-def plotRatio(ax, hist1, hist2, merge_every_nbins=4, title=None, xlabel=None, ylabel=None):
+def plotRatio(ax, hist1, hist2, merge_every_nbins=4, title='', xlabel='', ylabel=''):
 
     bin_edges = hist1.axis().edges()
     assert(np.all(bin_edges == hist2.axis().edges()))
@@ -71,13 +73,13 @@ def plotRatio(ax, hist1, hist2, merge_every_nbins=4, title=None, xlabel=None, yl
         marker='', drawstyle= 'steps-mid', linestyle='-', color='tab:red',
         label='Standalone')
 
-    if title is not None:
-        ax.set_title(title)
+    if title:
+        ax.set_title(title, fontsize=6)
 
-    if xlabel is not None:
+    if xlabel:
         ax.set_xlabel(xlabel)
 
-    if ylabel is not None:
+    if ylabel:
         ax.set_ylabel(ylabel)
 
     ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
@@ -138,12 +140,19 @@ def makeSummaryPlots(
                 title=l)
 
         # x-axis label
-        axes[-1].set_xlabel(
-            '$'+hist_sa.axis().member('fTitle').replace('#',"\\")+'$'
-            )
+        xlabel = hist_sa.axis().member('fTitle')
+        newlabels = []
+        for xl in re.split(r"\s(?![^{]*})", xlabel):
+            # add '$' for latex expressions
+            if '#' in xl or '{' in xl or '}' in xl:
+                newlabels.append('$'+xl.replace("#","\\")+'$')
+            else:
+                newlabels.append(xl)
+
+        axes[-1].set_xlabel(' '.join(newlabels))
 
         # legend
-        axes[0].legend(bbox_to_anchor=(1.0, 1.25), loc="lower right", ncol=2)
+        axes[0].legend(bbox_to_anchor=(1.05, 1.01), loc="lower right", ncol=1, fontsize='small')
 
         print(f"Create plot {figname}")
         fig.savefig(figname, dpi=300)
