@@ -24,7 +24,7 @@ def rebin(ngroup, edges, values, errors):
 
     return new_edges, new_values, new_errors
 
-def plotRatio(ax, hist1, hist2, merge_every_nbins=4, title='', xlabel='', ylabel=''):
+def plotRatio(ax, hist1, hist2, merge_every_nbins=4, title='', xlabel='', ylabel='', compute_chi2=False):
 
     bin_edges = hist1.axis().edges()
     assert(np.all(bin_edges == hist2.axis().edges()))
@@ -44,6 +44,25 @@ def plotRatio(ax, hist1, hist2, merge_every_nbins=4, title='', xlabel='', ylabel
         error1 = error1_rb
         value2 = value2_rb
         error2 = error2_rb
+
+    if compute_chi2:
+        # number of degress of freedom
+        ndf = len(value1)
+
+        # loop over bins
+        chi2 = 0.
+        for v1, v2, e1, e2 in zip(value1, value2, error1, error2):
+            if v1 == 0 and v2 == 0:
+                ndf -= 1 # Skip empty bin
+                continue
+            chi2 += (v1-v2)*(v1-v2) / (e1*e1+e2*e2)
+
+        pvalue = 1. - stats.chi2.cdf(chi2, ndf)
+
+        # add to title
+        if title:
+            title += "\n"
+        title += "[$\chi^{2}$/NDF" + f" = {chi2:.2f}/{ndf} (p-value = {pvalue:.2f})]"
 
     relerr2 = np.zeros_like(error2)
     np.divide(error2, value2, out=relerr2, where=value2!=0)
@@ -137,7 +156,7 @@ def makeSummaryPlots(
 
             plotRatio(
                 ax, hist_sa, hist_rw,
-                title=l)
+                title=l, compute_chi2=True)
 
         # x-axis label
         xlabel = hist_sa.axis().member('fTitle')
