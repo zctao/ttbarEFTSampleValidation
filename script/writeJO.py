@@ -1,6 +1,20 @@
 #!/usr/bin/env python3
 import os
 
+jo_reweighted = """
+selected_operators = ['ctGRe', 'ctGIm', 'ctj1', 'cQd1', 'cQu1', 'ctj8', 'cQd8', 'cQu8', 'ctd1', 'ctu1', 'cQj11', 'cQj31', 'ctd8', 'ctu8', 'cQj38', 'cQj18']
+
+process_definition = 'generate p p > t t~ QCD=2 NP=1 NPprop=0 SMHLOOP=0'
+
+fixed_scale = 345. # ~ m(top)+m(top)
+
+gridpack = False
+
+evgenConfig.description = 'SMEFTsim 3.0 tt, top model, inclusive, reweighted, EFT vertices, no propagator correction'
+
+include("{common_jo}")
+"""
+
 # import from somewhere instead?
 eft_dict = {
     'ctGRe':  ('SMEFT', 15, [-0.4,-0.2,0.3,0.5]),

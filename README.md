@@ -5,9 +5,13 @@
   
 ## To produce samples
 
-Generate job files:
+Generate job files for reweight sample:
 
-    python script/createJobs.py -o <output_directory> -c <list of Wilson coefficients> -v <list of values for the WCs>
+    python script/createJobs.py -o <output_directory> rw
+
+Generate job files for standalone samples:
+
+    python script/createJobs.py -o <output_directory> sa -c <list of Wilson coefficients> -v <list of values for the WCs>
 
 Also see an example script in
 
