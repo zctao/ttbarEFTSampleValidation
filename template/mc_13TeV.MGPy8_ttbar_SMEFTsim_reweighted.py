@@ -1,0 +1,205 @@
+from MadGraphControl.MadGraphUtils import *
+from MCJobOptionUtils.JOsupport import get_physics_short
+
+# Metadata
+evgenConfig.description = "SMEFTsim 3.0 tt, top model, inclusive, reweighted, EFT vertices, no propagator correction"
+evgenConfig.contact          = ['zhengcheng.tao@cern.ch', 'noemi.cavalli@cern.ch', 'hannah.herde@cern.ch']
+evgenConfig.generators       = ['MadGraph','EvtGen','Pythia8']
+
+# EFT operators
+# A list of SMEFTsim operators (must be a subset of the keys of eft_dict below)
+# TODO: double check the list of operators
+selected_operators = ['ctGRe', 'ctGIm', 'ctj1', 'cQd1', 'cQu1', 'ctj8', 'cQd8', 'cQu8', 'ctd1', 'ctu1', 'cQj11', 'cQj31', 'ctd8', 'ctu8', 'cQj38', 'cQj18']
+
+# general parameters
+nevents     = runArgs.maxEvents if runArgs.maxEvents>0 else evgenConfig.nEventsPerJob
+nevents    *= 1.1 # safety factor
+mllcut      = 5
+lhe_version = 3
+
+# process definition
+model = "SMEFTsim_top_MwScheme_UFO-massless_topX"
+if "_prop" in get_physics_short():
+    model = "SMEFTsim_top_MwScheme_PropCorr_UFO-massless_topX"
+
+process = '''
+import model ''' + model + '''
+define p = g u c d s b u~ c~ d~ s~ b~
+define j = g u c d s b u~ c~ d~ s~ b~
+define w = w+ w-
+define l+ = e+ mu+ ta+
+define l- = e- mu- ta-
+define wdec = l+ l- vl vl~ j
+generate p p > t t~ QCD=2 NP=1, (t > w+ b NP=0,  w+ > wdec wdec NP=0), (t~ > w- b~ NP=0, w- > wdec wdec NP=0) @0 NPprop=0 SMHLOOP=0
+output -f
+'''
+# Note: EFT operators are turned off in the top decay
+
+process_dir = new_process(process)
+
+# run card settings
+fixed_scale = 345. # ~ m(top)+m(top)
+
+settings = {
+    'nevents'               : nevents,
+    'maxjetflavor'          : 5,
+    'pdlabel'               : 'lhapdf',
+    'lhaid'                 : 262000,
+    'use_syst'              : 'False',
+    'ptj'                   : '0.0',
+    'ptl'                   : '0.0',
+    'etaj'                  : '-1.0',
+    'etal'                  : '-1.0',
+    'drjj'                  : '0.0',
+    'drll'                  : '0.0',
+    'drjl'                  : '0.0',
+    'mmll'                  : mllcut,
+    'dynamical_scale_choice': '0',
+    'fixed_ren_scale'       : 'True',
+    'fixed_fac_scale'       : 'True',
+    'scale'                 : fixed_scale,
+    'dsqrt_q2fact1'         : fixed_scale,
+    'dsqrt_q2fact2'         : fixed_scale,
+}
+
+modify_run_card(process_dir=process_dir,
+                runArgs=runArgs,
+                settings=settings)
+
+# SM param card settings
+params = dict()
+params['mass'] = dict()
+params['mass']['6'] = '1.725000e+02'
+params['mass']['23'] = '9.118760e+01'
+params['mass']['24'] = '8.039900e+01'
+params['mass']['25'] = '1.250000e+02'
+params['yukawa'] = dict()
+params['yukawa']['6'] = '1.725000e+02'
+params['DECAY'] = dict()
+params['DECAY']['23'] = 'DECAY  23   2.495200e+00'
+params['DECAY']['24'] = '''DECAY  24   2.085000e+00
+   3.377000e-01   2   -1   2
+   3.377000e-01   2   -3   4
+   1.082000e-01   2  -11  12
+   1.082000e-01   2  -13  14
+   1.082000e-01   2  -15  16'''
+params['DECAY']['25'] = 'DECAY  25   6.382339e-03'
+
+modify_param_card(process_dir=process_dir,params=params)
+
+# EFT param card settings
+params = dict() 
+params['SMEFTcutoff'] = dict()
+params['SMEFTcutoff']['1'] = '1.000000e+03'
+modify_param_card(process_dir=process_dir,params=params)
+
+# build a dictionary of EFT operators: dict[operator name] = (block, id, [values])
+eft_dict = {
+    'ctGRe':  ('SMEFT', 15, [-0.4,-0.2,0.3,0.5]),
+    'ctWRe':  ('SMEFT', 17, [-1.1,-0.7,0.7,1.1]),
+    'ctBRe':  ('SMEFT', 19, [-0.9,-0.3,0.3,0.9]),
+    'cHQ1':   ('SMEFT', 27, [-5,-1,1,5]),
+    'cHQ3':   ('SMEFT', 29, [-5,-1,1,5]),
+    'cHt':    ('SMEFT', 31, [-5,-1,1,5]),
+    'cQj11':  ('SMEFT', 40, [-0.5,-0.3,0.3,0.5]),
+    'cQj18':  ('SMEFT', 41, [-1.3,-0.9,0.3,0.7]),
+    'cQj31':  ('SMEFT', 42, [-0.5,-0.4,0.3,0.5]),
+    'cQj38':  ('SMEFT', 43, [-0.8,-0.4,0.4,0.8]),
+    'cQQ1':   ('SMEFT', 44, [-1.4,-1,0.4,0.9]),
+    'cQQ8':   ('SMEFT', 45, [-1.4,-1,0.4,0.9]),
+    'ctu1':   ('SMEFT', 49, [-0.3,-0.15,0.1,0.3]),
+    'ctu8':   ('SMEFT', 50, [-0.5,-0.3,0.3,0.5]),
+    'ctd1':   ('SMEFT', 58, [-0.6,-0.3,0.3,0.6]),
+    'ctd8':   ('SMEFT', 62, [-1.4,-1,0.4,0.9]),
+    'cQu1':   ('SMEFT', 67, [-1.4,-1,0.4,0.9]),
+    'cQu8':   ('SMEFT', 69, [-1.4,-1,0.4,0.9]),
+    'ctj1':   ('SMEFT', 70, [-1.4,-1,0.4,0.9]),
+    'ctj8':   ('SMEFT', 71, [-1.4,-1,0.4,0.9]),
+    'cQt1':   ('SMEFT', 72, [-1.4,-1,0.4,0.9]),
+    'cQt8':   ('SMEFT', 73, [-1.4,-1,0.4,0.9]),
+    'cQd1':   ('SMEFT', 76, [-1.4,-1,0.4,0.9]),
+    'cQd8':   ('SMEFT', 77, [-1.4,-1,0.4,0.9]),
+    'cQl111': ('SMEFT', 133, [-5,-1,1,5]),
+    'cQl122': ('SMEFT', 134, [-5,-1,1,5]),
+    'cQl133': ('SMEFT', 135, [-5,-3,3,5]),
+    'cQl311': ('SMEFT', 136, [-5,-1,1,5]),
+    'cQl322': ('SMEFT', 137, [-1.1,-0.6,0.6,1.1]),
+    'cQl333': ('SMEFT', 138, [-5,-1,1,3,5]),
+    'cte11':  ('SMEFT', 148, [-2.4,-1,1,3]),
+    'cte22':  ('SMEFT', 149, [-3,-1,1,5]),
+    'cte33':  ('SMEFT', 150, [-5,-1,1,5]),
+    'cQe11':  ('SMEFT', 160, [-2.4,-1,1,3]),
+    'cQe22':  ('SMEFT', 161, [-3,-1,1,5]),
+    'cQe33':  ('SMEFT', 162, [-5,-1,1,5]),
+    'ctl11':  ('SMEFT', 166, [-2.4,-1,1,3]),
+    'ctl22':  ('SMEFT', 167, [-3,-1,1,5]),
+    'ctl33':  ('SMEFT', 168, [-5,-1,1,5]),
+    'ctGIm':  ('SMEFTcpv', 8, [-0.4,-0.3,0.3,0.5]),
+    'ctWIm':  ('SMEFTcpv', 10, [-1.4,-0.8,0.6,1.2]),
+    'ctBIm':  ('SMEFTcpv', 12, [-1.8,-0.6,0.6,1.8]),
+}
+
+# convert operator values to text format
+def value_to_string(value):
+    if value > 0:
+        string = "p"
+    else:
+        string = "m"
+    string += "{:.1f}".format(abs(value)).replace(".","p")
+    return string
+
+# define reweighting points
+reweight_commands = "change rwgt_dir rwgt\n"
+reweight_commands += "change helicity False\n"
+for operator in selected_operators:
+    block = eft_dict[operator][0]
+    idnumber = eft_dict[operator][1]
+    for value in eft_dict[operator][2]:
+        reweight_commands += "launch --rwgt_info=" + operator + "_" + value_to_string(value) + "\n"
+        reweight_commands += "set "+ block + " " +str(idnumber) + " " + str(value) + "\n"
+for i,operator1 in enumerate(selected_operators):
+    block1 = eft_dict[operator1][0]
+    idnumber1 = eft_dict[operator1][1]
+    for operator2 in selected_operators[i+1:]:
+        block2 = eft_dict[operator][0]
+        idnumber2 = eft_dict[operator2][1]
+        # avoid going beyond 1000 weights if possible
+        if len(selected_operators) <= 30:
+            for value in [-0.3,0.4]:
+                reweight_commands += "launch --rwgt_info=" + operator1 + "_" + value_to_string(value) + "_" + operator2 + "_" + value_to_string(value) + "\n"
+                reweight_commands += "set "+ block1 + " " + str(idnumber1) + " " + str(value) + "\n"
+                reweight_commands += "set "+ block2 + " " + str(idnumber2) + " " + str(value) + "\n"
+        else:
+            value1 = -0.3
+            value2 = 0.4
+            reweight_commands += "launch --rwgt_info=" + operator1 + "_" + value_to_string(value1) + "_" + operator2 + "_" + value_to_string(value2) + "\n"
+            reweight_commands += "set "+ block1 + " " + str(idnumber1) + " " + str(value1) + "\n"
+            reweight_commands += "set "+ block2 + " " + str(idnumber2) + " " + str(value2) + "\n"
+
+# write to reweight card
+reweight_card   = process_dir+'/Cards/reweight_card.dat'
+reweight_card_f = open(reweight_card,'w')
+reweight_card_f.write(reweight_commands)
+reweight_card_f.close()
+
+print_cards()
+
+gridpack = False
+generate(process_dir=process_dir,
+         grid_pack=gridpack,
+         gridpack_compile=False,
+         required_accuracy=0.001,
+         runArgs=runArgs)
+
+outputDS = arrange_output(process_dir=process_dir,
+                          runArgs=runArgs,
+                          saveProcDir=True,
+                          lhe_version=lhe_version)
+
+check_reset_proc_number(opts)
+include("Pythia8_i/Pythia8_A14_NNPDF23LO_EvtGen_Common.py")
+include("Pythia8_i/Pythia8_MadGraph.py")
+
+#new lines to avoid crash when no pythia
+#theApp.finalize()
+#theApp.exit()
