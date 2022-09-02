@@ -15,7 +15,7 @@ export FRONTIER="(http://frontier.triumf.ca:3128/ATLAS_frontier)(proxyurl=http:/
 """
 
 slurm_header = """
-#SBATCH -o {outdir}
+#SBATCH -o {outdir}/slurm-%j.out
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user={email}
 """
