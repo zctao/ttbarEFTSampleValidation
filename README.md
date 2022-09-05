@@ -13,22 +13,28 @@ Generate job files for standalone samples:
 
     python script/createJobs.py -o <output_directory> sa -c <list of Wilson coefficients> -v <list of values for the WCs>
 
-Also see an example script in
+See examples in
 
-    test/run_production_2wc.sh
-    
-Submit jobs:
+    test/run_production_example.sh
 
-    source <output_directory>/submit_chain.sh [qsub options]
-    
-Or submit the generation and derivation steps separately:
+To run sample productions on a cluster, add ```-b slurm``` if for Slurm or ```-b pbs``` if for PBS to ```script/createJobs.py```.
 
-    qsub [options] <output_directory>/submit_prod.sh
- 
-  and after it's done, then
+To submit the production job:
 
-    qsub [options] <output_directory>/submit_deriv.sh
-    
+    sbatch --time=<hh:mm:ss> <output_directory>/run_prod.sh
+
+or
+
+    qsub -l walltime=<hh:mm:ss> <output_directory>/run_prod.sh
+
+To submit the derivation job after the sample production is done:
+
+    sbatch --time=<hh:mm:ss> <output_directory>/run_deriv.sh
+  
+or
+
+    qsub -l walltime=<hh:mm:ss> <output_directory>/run_deriv.sh
+
 ## To make comparison plot
 
     python script/compareSamples.py -i <filepath to the reweight sample> <filepath to the standalone sample> -n <label> -o <output_name>
