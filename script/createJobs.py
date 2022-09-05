@@ -18,6 +18,7 @@ slurm_header = """
 #SBATCH -o {outdir}/slurm-%j.out
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user={email}
+#SBATCH --export=NONE
 """
 
 setup_env = """
@@ -59,11 +60,20 @@ outputDIR={outdir}/Reco
 mkdir -p $outputDIR
 echo outputDIR=$outputDIR
 
-outputFile=$outputDIR/{filename_reco}
+outputFile={filename_reco}
+
+# run directory
+workDIR=$outputDIR/run
+mkdir -p $workDIR
+echo workDIR=$workDIR
+cd $workDIR
+echo PWD=$PWD
 
 echo "Run derivation"
 
 Reco_tf.py --inputEVNTFile $inputFile --outputDAODFile $outputFile  --reductionConf TRUTH1
+
+mv *.root $outputDIR/.
 """
 
 clean_up = """
@@ -80,7 +90,7 @@ def writeJobScripts(params_d, batch_system=None):
         header += slurm_header
 
     # generation
-    jobscripts_prod = header + setup_env + run_prod + clean_up
+    jobscripts_prod = header + setup_env + run_prod
     jobscripts_prod = jobscripts_prod.format(**params_d)
 
     # write the script to file
@@ -89,7 +99,7 @@ def writeJobScripts(params_d, batch_system=None):
         f_prod.write(jobscripts_prod)
 
     # derivation
-    jobscripts_deriv = header + setup_env + run_deriv + clean_up
+    jobscripts_deriv = header + setup_env + run_deriv
     jobscripts_deriv = jobscripts_deriv.format(**params_d)
 
     # write the script to file
