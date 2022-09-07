@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import shutil
+from datetime import datetime
 
 from writeJO import writeJO_rw, writeJO_sa
 
@@ -41,7 +42,8 @@ cd $workDIR
 echo PWD=$PWD
 
 # Random number generator seed
-rngseed=$(date +"%N")
+#rngseed=$(date +"%N")
+rngseed={rng_seed}
 echo "randomSeed=$rngseed"
 
 jobOption={joboption}
@@ -140,6 +142,7 @@ def createJobs_rw(args):
         'joboption': jodir,
         'filename_gen': filename_gen,
         'filename_reco': filename_reco,
+        'rng_seed': datetime.now().strftime("%f")
     }
 
     writeJobScripts(params_dict, batch_system=args.batch_system)
@@ -187,6 +190,7 @@ def createJobs_sa(args):
         'joboption': jodir,
         'filename_gen': filename_gen,
         'filename_reco': filename_reco,
+        'rng_seed': datetime.now().strftime("%f")
     }
 
     writeJobScripts(params_dict, batch_system=args.batch_system)
