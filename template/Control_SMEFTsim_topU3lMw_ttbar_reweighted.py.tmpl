@@ -12,6 +12,8 @@
 from MadGraphControl.MadGraphUtils import *
 from MCJobOptionUtils.JOsupport import get_physics_short
 
+import shutil
+
 # general parameters
 nevents     = runArgs.maxEvents if runArgs.maxEvents>0 else evgenConfig.nEventsPerJob
 nevents    *= safety_factor
@@ -62,6 +64,13 @@ settings = {
 modify_run_card(process_dir=process_dir,
                 runArgs=runArgs,
                 settings=settings)
+
+# param card settings
+# First copy the "restricted" parameter card param_card_massless.dat provided in the SMEFTsim model UFO, so all Wilson coefficients are set to 0.
+mg_model_dir="/cvmfs/atlas.cern.ch/repo/sw/Generators/madgraph/models/latest"
+model_name = model.replace("-massless","")
+card_name = os.path.join(mg_model_dir, model_name, "param_card_massless.dat")
+shutil.copyfile(card_name, os.path.join(process_dir,"Cards/param_card.dat"))
 
 # SM param card settings
 params = dict()
