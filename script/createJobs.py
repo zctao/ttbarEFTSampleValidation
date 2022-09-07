@@ -2,7 +2,7 @@
 import os
 import shutil
 
-from writeJO import modifyJO
+from writeJO import writeJO_rw, writeJO_sa
 
 pbs_header = """
 #PBS -o {outdir}
@@ -123,17 +123,11 @@ def createJobs_rw(args):
         print(f"Create job option directory {jodir}")
         os.makedirs(jodir)
 
-    # template job option
-    if not os.path.isfile(args.template_jo):
-        sys.exit(f"Cannot find the template job option: {args.template_jo}")
-
-    # copy to jodir
-    jo_basename = os.path.basename(args.template_jo)
-    jofname = os.path.join(jodir, jo_basename)
-    shutil.copyfile(args.template_jo, jofname)
+    # write job options
+    writeJO_rw(args.template_control, args.template_jo, jodir)
 
     # file names
-    filename = f"ttbar_SMEFTsim_rw_validation"
+    filename = f"ttbar_SMEFTsim_rw"
     filename_gen = filename+".EVNT.root"
     filename_reco = filename+".root"
 
@@ -173,14 +167,14 @@ def createJobs_sa(args):
         print(f"Create job option directory {jodir}")
         os.makedirs(jodir)
 
-    jofname = os.path.basename(args.template_jo).replace(".py", f"_{label}.py")
+    jofname = os.path.basename(args.template).replace(".py", f"_{label}.py")
     jofname = os.path.join(jodir, jofname)
 
     # write job option
-    modifyJO(args.template_jo, args.coefficients, args.values, jofname)
+    writeJO_sa(args.template, args.coefficients, args.values, jofname)
 
     # file names
-    filename = f"ttbar_SA_{label}_validation"
+    filename = f"ttbar_SMEFTsim_{label}"
     filename_gen = filename+".EVNT.root"
     filename_reco = filename+".root"
 
@@ -214,9 +208,12 @@ if __name__ == "__main__":
 
     # parser for generating reweighted sample
     parser_rw = subparsers.add_parser('rw', help="Generate reweighted sample")
-    parser_rw.add_argument("-t", "--template-jo", type=str,
-                            default="template/mc_13TeV.MGPy8_ttbar_SMEFTsim_reweighted_nonallhad.py",
-                            help="Template job option file for generating reweighted sample")
+    parser_rw.add_argument("-j", "--template-jo", type=str,
+                            default="template/mc_13TeV.MGPy8_ttbar_SMEFTsim_reweighted_nonallhad.py.tmpl",
+                            help="Job option template for generating reweighted sample")
+    parser_rw.add_argument("-t", "--template-control", type=str,
+                            default="template/Control_SMEFTsim_topU3lMw_ttbar_reweighted.py.tmpl",
+                            help="Control file template for generating reweighted sample")
     parser_rw.set_defaults(func=createJobs_rw)
 
     # parser for generating standalone sample
@@ -225,8 +222,8 @@ if __name__ == "__main__":
                             help="List of Wilson coefficient names")
     parser_sa.add_argument("-v", "--values", nargs='+', type=float,
                             help="Values of the Wilson coefficients")
-    parser_sa.add_argument("-t","--template-jo", type=str,
-                            default="template/mc_13TeV.MGPy8_tt_SMEFTsim_topmW_topX_StandAlone_nonallhad.py",
+    parser_sa.add_argument("-t","--template", type=str,
+                            default="template/mc_13TeV.MGPy8_ttbar_SMEFTsim_topU3lMw_StandAlone_nonallhad.py.tmpl",
                             help="Template job option file for generating standalone sample")
     parser_sa.set_defaults(func=createJobs_sa)
 

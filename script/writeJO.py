@@ -1,53 +1,58 @@
 #!/usr/bin/env python3
 import os
 
-# import from somewhere instead?
-eft_dict = {
-    'ctGRe':  ('SMEFT', 15, [-0.4,-0.2,0.3,0.5]),
-    'ctWRe':  ('SMEFT', 17, [-1.1,-0.7,0.7,1.1]),
-    'ctBRe':  ('SMEFT', 19, [-0.9,-0.3,0.3,0.9]),
-    'cHQ1':   ('SMEFT', 27, [-5,-1,1,5]),
-    'cHQ3':   ('SMEFT', 29, [-5,-1,1,5]),
-    'cHt':    ('SMEFT', 31, [-5,-1,1,5]),
-    'cQj11':  ('SMEFT', 40, [-0.5,-0.3,0.3,0.5]),
-    'cQj18':  ('SMEFT', 41, [-1.3,-0.9,0.3,0.7]),
-    'cQj31':  ('SMEFT', 42, [-0.5,-0.4,0.3,0.5]),
-    'cQj38':  ('SMEFT', 43, [-0.8,-0.4,0.4,0.8]),
-    'cQQ1':   ('SMEFT', 44, [-1.4,-1,0.4,0.9]),
-    'cQQ8':   ('SMEFT', 45, [-1.4,-1,0.4,0.9]),
-    'ctu1':   ('SMEFT', 49, [-0.3,-0.15,0.1,0.3]),
-    'ctu8':   ('SMEFT', 50, [-0.5,-0.3,0.3,0.5]),
-    'ctd1':   ('SMEFT', 58, [-0.6,-0.3,0.3,0.6]),
-    'ctd8':   ('SMEFT', 62, [-1.4,-1,0.4,0.9]),
-    'cQu1':   ('SMEFT', 67, [-1.4,-1,0.4,0.9]),
-    'cQu8':   ('SMEFT', 69, [-1.4,-1,0.4,0.9]),
-    'ctj1':   ('SMEFT', 70, [-1.4,-1,0.4,0.9]),
-    'ctj8':   ('SMEFT', 71, [-1.4,-1,0.4,0.9]),
-    'cQt1':   ('SMEFT', 72, [-1.4,-1,0.4,0.9]),
-    'cQt8':   ('SMEFT', 73, [-1.4,-1,0.4,0.9]),
-    'cQd1':   ('SMEFT', 76, [-1.4,-1,0.4,0.9]),
-    'cQd8':   ('SMEFT', 77, [-1.4,-1,0.4,0.9]),
-    'cQl111': ('SMEFT', 133, [-5,-1,1,5]),
-    'cQl122': ('SMEFT', 134, [-5,-1,1,5]),
-    'cQl133': ('SMEFT', 135, [-5,-3,3,5]),
-    'cQl311': ('SMEFT', 136, [-5,-1,1,5]),
-    'cQl322': ('SMEFT', 137, [-1.1,-0.6,0.6,1.1]),
-    'cQl333': ('SMEFT', 138, [-5,-1,1,3,5]),
-    'cte11':  ('SMEFT', 148, [-2.4,-1,1,3]),
-    'cte22':  ('SMEFT', 149, [-3,-1,1,5]),
-    'cte33':  ('SMEFT', 150, [-5,-1,1,5]),
-    'cQe11':  ('SMEFT', 160, [-2.4,-1,1,3]),
-    'cQe22':  ('SMEFT', 161, [-3,-1,1,5]),
-    'cQe33':  ('SMEFT', 162, [-5,-1,1,5]),
-    'ctl11':  ('SMEFT', 166, [-2.4,-1,1,3]),
-    'ctl22':  ('SMEFT', 167, [-3,-1,1,5]),
-    'ctl33':  ('SMEFT', 168, [-5,-1,1,5]),
-    'ctGIm':  ('SMEFTcpv', 8, [-0.4,-0.3,0.3,0.5]),
-    'ctWIm':  ('SMEFTcpv', 10, [-1.4,-0.8,0.6,1.2]),
-    'ctBIm':  ('SMEFTcpv', 12, [-1.8,-0.6,0.6,1.8]),
-}
+from eft_dict import eft_dict
 
-def modifyJO(template_file, coefficients, values, output):
+def cleanup_template_filename(fname):
+    # remove template file extension e.g. ".tmpl" and add the extension ".py"
+    newfname = os.path.splitext(fname)[0]
+
+    if not newfname.endswith(".py"):
+        newfname += ".py"
+
+    return newfname
+
+def read_lines_and_replace(filename, target_str_list, new_str_list):
+
+    with open(filename) as f_in:
+        lines = f_in.readlines()
+
+    for i in range(len(lines)):
+        # search and replace
+        for target, newstr in zip(target_str_list, new_str_list):
+            if target in lines[i]:
+                lines[i] = lines[i].replace(target, newstr)
+
+    return lines
+
+def writeJO_rw(template_control, template_jo, outdir):
+
+    # Modify template_control
+    assert(os.path.isfile(template_control))
+    # Add eft_dict to template_control
+    # search and replace "TEMPLATE_INSERT_EFT_DICT" in template_control
+    lines_ctrl = read_lines_and_replace(
+        template_control, ["TEMPLATE_INSERT_EFT_DICT"], [f"{eft_dict=}"]
+        )
+
+    # write to a new file
+    fname_ctrl = os.path.basename( cleanup_template_filename(template_control) )
+    with open(os.path.join(outdir, fname_ctrl), 'w') as new_fctrl:
+        new_fctrl.writelines(lines_ctrl)
+
+    # Modify template_jo
+    assert(os.path.isfile(template_jo))
+    # Add control file to the job option
+    lines_jo = read_lines_and_replace(
+        template_jo, ["TEMPLATE_INSERT_CONTROL_PY"], [fname_ctrl]
+        )
+
+    # write to a new file
+    fname_jo = os.path.basename( cleanup_template_filename(template_jo) )
+    with open(os.path.join(outdir, fname_jo), 'w') as new_jo:
+        new_jo.writelines(lines_jo)
+
+def writeJO_sa(template_file, coefficients, values, output):
     assert(len(coefficients)==len(values))
 
     file_jo = open(template_file)
@@ -72,6 +77,7 @@ def modifyJO(template_file, coefficients, values, output):
     file_jo.close()
 
     # write to a new JO
+    output = cleanup_template_filename(output)
     with open(output, 'w') as newfile_jo:
         newfile_jo.writelines(lines)
 
@@ -79,19 +85,39 @@ if __name__ == "__main__":
 
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Generate a new job option by modifying the Wilson coefficients in a template job option file"
-    )
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(dest='subparser_name')
 
-    parser.add_argument("template_file", type=str,
-                        help="File name of the job option to be modified")
-    parser.add_argument("-c", "--coefficients", nargs='+', type=str, required=True,
-                        help="List of Wilson coefficient names")
-    parser.add_argument("-v", "--values", nargs='+', type=float, required=True,
-                        help="Values of the Wilson coefficients")
-    parser.add_argument("-o", "--output", type=str, required=True,
-                        help="Output name")
+    # For reweight sample
+    parser_rw = subparsers.add_parser('rw', help="Generate job options for reweighted sample")
+    parser_rw.add_argument("-t", "--template-control", type=str, required=True,
+                            help="Template for control file")
+    parser_rw.add_argument("-j", "--template-jo", type=str, required=True,
+                            help="Job option tempalte")
+    parser_rw.add_argument("-o", "--outdir", type=str, required=True,
+                            help="Output directory")
+
+    # For standalone sample
+    parser_sa = subparsers.add_parser('sa', help="Generate a new job option by modifying the Wilson coefficients in a template job option file")
+    parser_sa.add_argument("template_file", type=str,
+                            help="File name of the job option to be modified")
+    parser_sa.add_argument("-c", "--coefficients", nargs='+', type=str, required=True,
+                            help="List of Wilson coefficient names")
+    parser_sa.add_argument("-v", "--values", nargs='+', type=float, required=True,
+                            help="Values of the Wilson coefficients")
+    parser_sa.add_argument("-o", "--output", type=str, required=True,
+                            help="Output name")
 
     args = parser.parse_args()
 
-    modifyJO(args.template_file, args.coefficients, args.values, args.output)
+    # call the corresponding function
+    if args.subparser_name == "rw":
+        if not os.path.isdir(args.outdir):
+            os.makedirs(args.outdir)
+        writeJO_rw(
+            args.template_control, args.template_jo, args.outdir
+            )
+    elif args.subparser_name == "sa":
+        writeJO_sa(
+            args.template_file, args.coefficients, args.values, args.output
+            )
