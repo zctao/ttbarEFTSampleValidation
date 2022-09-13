@@ -120,20 +120,20 @@ for operator in selected_operators:
         reweight_commands += "launch --rwgt_info=" + operator + "_" + value_to_string(value) + "\n"
         reweight_commands += "set "+ block + " " +str(idnumber) + " " + str(value) + "\n"
 for i,operator1 in enumerate(selected_operators):
-    block1 = eft_dict[operator1][0]
-    idnumber1 = eft_dict[operator1][1]
+    block1, idnumber1, valrange1 = eft_dict[operator1]
     for operator2 in selected_operators[i+1:]:
-        block2 = eft_dict[operator][0]
-        idnumber2 = eft_dict[operator2][1]
+        block2, idnumber2, valrange2 = eft_dict[operator2]
         # avoid going beyond 1000 weights if possible
         if len(selected_operators) <= 30:
-            for value in [-0.3,0.4]:
-                reweight_commands += "launch --rwgt_info=" + operator1 + "_" + value_to_string(value) + "_" + operator2 + "_" + value_to_string(value) + "\n"
-                reweight_commands += "set "+ block1 + " " + str(idnumber1) + " " + str(value) + "\n"
-                reweight_commands += "set "+ block2 + " " + str(idnumber2) + " " + str(value) + "\n"
+            for index_v in [1, -2]: # the middle two in the value list
+                value1 = valrange1[index_v]
+                value2 = valrange2[index_v]
+                reweight_commands += "launch --rwgt_info=" + operator1 + "_" + value_to_string(value1) + "_" + operator2 + "_" + value_to_string(value2) + "\n"
+                reweight_commands += "set "+ block1 + " " + str(idnumber1) + " " + str(value1) + "\n"
+                reweight_commands += "set "+ block2 + " " + str(idnumber2) + " " + str(value2) + "\n"
         else:
-            value1 = -0.3
-            value2 = 0.4
+            value1 = valrange1[1]
+            value2 = valrange2[-2]
             reweight_commands += "launch --rwgt_info=" + operator1 + "_" + value_to_string(value1) + "_" + operator2 + "_" + value_to_string(value2) + "\n"
             reweight_commands += "set "+ block1 + " " + str(idnumber1) + " " + str(value1) + "\n"
             reweight_commands += "set "+ block2 + " " + str(idnumber2) + " " + str(value2) + "\n"
