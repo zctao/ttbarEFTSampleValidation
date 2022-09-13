@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import os
-import shutil
 from datetime import datetime
 
 from writeJO import writeJO_rw, writeJO_sa
