@@ -1,3 +1,5 @@
+# Adapted from https://gitlab.cern.ch/atlas-physics/pmg/mcjoboptions/-/blob/master/508xxx/508772/Common_SMEFTsim_topmW_topX_reweighted.py
+
 # TO USE THIS CONTROL FILE:
 # - create a separate JO for your process, e.g. mc.MGPy8_ttll_SMEFTsim_reweighted.py
 # - declare "selected_operators", a list of SMEFTsim operators that is a subset of the keys of the "eft_dict" below
@@ -124,16 +126,16 @@ for i,operator1 in enumerate(selected_operators):
     for operator2 in selected_operators[i+1:]:
         block2, idnumber2, valrange2 = eft_dict[operator2]
         # avoid going beyond 1000 weights if possible
-        if len(selected_operators) <= 30:
-            for index_v in [1, -2]: # the middle two in the value list
-                value1 = valrange1[index_v]
-                value2 = valrange2[index_v]
-                reweight_commands += "launch --rwgt_info=" + operator1 + "_" + value_to_string(value1) + "_" + operator2 + "_" + value_to_string(value2) + "\n"
-                reweight_commands += "set "+ block1 + " " + str(idnumber1) + " " + str(value1) + "\n"
-                reweight_commands += "set "+ block2 + " " + str(idnumber2) + " " + str(value2) + "\n"
+        if len(selected_operators) <= 20:
+            # Four combinations for each pair of WCs
+            for value1 in valrange1[1:3]: # the middle two in the value list
+                for value2 in valrange2[1:3]: # the middle two in the value list
+                    reweight_commands += "launch --rwgt_info=" + operator1 + "_" + value_to_string(value1) + "_" + operator2 + "_" + value_to_string(value2) + "\n"
+                    reweight_commands += "set "+ block1 + " " + str(idnumber1) + " " + str(value1) + "\n"
+                    reweight_commands += "set "+ block2 + " " + str(idnumber2) + " " + str(value2) + "\n"
         else:
             value1 = valrange1[1]
-            value2 = valrange2[-2]
+            value2 = valrange2[2]
             reweight_commands += "launch --rwgt_info=" + operator1 + "_" + value_to_string(value1) + "_" + operator2 + "_" + value_to_string(value2) + "\n"
             reweight_commands += "set "+ block1 + " " + str(idnumber1) + " " + str(value1) + "\n"
             reweight_commands += "set "+ block2 + " " + str(idnumber2) + " " + str(value2) + "\n"
