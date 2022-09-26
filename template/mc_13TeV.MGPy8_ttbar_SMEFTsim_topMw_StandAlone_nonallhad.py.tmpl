@@ -12,9 +12,9 @@ gridpack = False
 evgenConfig.description = 'SMEFTsim 3.0 tt, top model, nonallhad, standalone, EFT vertices, no propagator correction'
 
 # process definition
-model = "SMEFTsim_topU3l_MwScheme_UFO-massless"
+model = "SMEFTsim_top_MwScheme_UFO-massless"
 if "_prop" in get_physics_short():
-    model = "SMEFTsim_topU3l_MwScheme_PropCorr_UFO-massless"
+    model = "SMEFTsim_top_MwScheme_PropCorr_UFO-massless"
 
 process = '''
 import model ''' + model + '''

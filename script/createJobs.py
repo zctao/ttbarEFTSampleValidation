@@ -215,7 +215,7 @@ if __name__ == "__main__":
                             default="template/mc_13TeV.MGPy8_ttbar_SMEFTsim_reweighted_nonallhad.py.tmpl",
                             help="Job option template for generating reweighted sample")
     parser_rw.add_argument("-t", "--template-control", type=str,
-                            default="template/Control_SMEFTsim_topU3lMw_ttbar_reweighted.py.tmpl",
+                            default="template/Control_SMEFTsim_topMw_ttbar_reweighted.py.tmpl",
                             help="Control file template for generating reweighted sample")
     parser_rw.set_defaults(func=createJobs_rw)
 
@@ -226,7 +226,7 @@ if __name__ == "__main__":
     parser_sa.add_argument("-v", "--values", nargs='+', type=float,
                             help="Values of the Wilson coefficients")
     parser_sa.add_argument("-t","--template", type=str,
-                            default="template/mc_13TeV.MGPy8_ttbar_SMEFTsim_topU3lMw_StandAlone_nonallhad.py.tmpl",
+                            default="template/mc_13TeV.MGPy8_ttbar_SMEFTsim_topMw_StandAlone_nonallhad.py.tmpl",
                             help="Template job option file for generating standalone sample")
     parser_sa.set_defaults(func=createJobs_sa)
 
