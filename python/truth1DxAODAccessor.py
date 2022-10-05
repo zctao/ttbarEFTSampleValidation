@@ -49,7 +49,7 @@ class TruthParticleAccessor():
         """
         truth_particles = self.truth_particles_arr[ievent]
 
-        for i, pid in enumerate(truth_particles["TruthParticlesAux.pdgId"]):
+        for i, pid in enumerate(truth_particles["TruthParticlesAux.pdgId"]):            
             if pid != pdgid:
                 continue
 
@@ -71,6 +71,73 @@ class TruthParticleAccessor():
 
         return None
 
+    def getTruthParticleP4Lepton(self, ievent, pdgid, status):
+        """
+        Return the Lorentz vector of the specified truth particle
+        (ROOT.Math.PxPyPzMVector)
+        """
+        truth_particles = self.truth_particles_arr[ievent]
+        full_p4 = []        
+
+        for i, pid in enumerate(truth_particles["TruthParticlesAux.pdgId"]):            
+            if abs(pid) != pdgid:
+                continue
+
+            # check status
+            st = truth_particles["TruthParticlesAux.status"][i]
+            if st != status:
+                continue
+
+            # found the particle
+            # construct Lorentz Vector
+            p4 = ROOT.Math.PxPyPzMVector(
+                truth_particles["TruthParticlesAux.px"][i],
+                truth_particles["TruthParticlesAux.py"][i],
+                truth_particles["TruthParticlesAux.pz"][i],
+                truth_particles["TruthParticlesAux.m"][i]
+                )
+            
+            full_p4.append(p4)
+
+        if len(full_p4) == 0:
+            return None     
+
+        return full_p4    
+
+    def getTruthParticleP4Both(self, ievent, status):
+        """
+        Return the Lorentz vector of the specified truth particle
+        (ROOT.Math.PxPyPzMVector)
+        """
+        truth_particles = self.truth_particles_arr[ievent]
+        full_p4 = []        
+
+        for i, pid in enumerate(truth_particles["TruthParticlesAux.pdgId"]):            
+            if (abs(pid) != 11) and (abs(pid) != 13) :
+                #print('pid=',pid)
+                continue
+
+            # check status
+            st = truth_particles["TruthParticlesAux.status"][i]
+            if st != status:
+                continue
+
+            # found the particle
+            # construct Lorentz Vector
+            p4 = ROOT.Math.PxPyPzMVector(
+                truth_particles["TruthParticlesAux.px"][i],
+                truth_particles["TruthParticlesAux.py"][i],
+                truth_particles["TruthParticlesAux.pz"][i],
+                truth_particles["TruthParticlesAux.m"][i]
+                )
+            
+            full_p4.append(p4)
+
+        if len(full_p4) == 0:
+            return None     
+
+        return full_p4    
+
     def getTruthP4_top(self, ievent, afterFSR):
         status = 62 if afterFSR else 22 # Pythia 8 only
         return self.getTruthParticleP4(ievent, 6, status)
@@ -86,6 +153,24 @@ class TruthParticleAccessor():
     def getTruthP4_Wm(self, ievent):
         status = 22 # Pythia 8 only
         return self.getTruthParticleP4(ievent, -24, status)
+   
+    def getTruthP4_elec(self, ievent):
+        status = 1 # Pythia 8 only
+        elec_p4 = self.getTruthParticleP4Lepton(ievent, 11, status)
+        if elec_p4 is not None:
+            return elec_p4     
+
+    def getTruthP4_muon(self, ievent):
+        status = 1 # Pythia 8 only
+        muon_p4 = self.getTruthParticleP4Lepton(ievent, 13, status)
+        if muon_p4 is not None:
+            return muon_p4
+
+    def getTruthP4_both(self, ievent):
+        status = 1 # Pythia 8 only
+        both_p4 = self.getTruthParticleP4Both(ievent, status)
+        if both_p4 is not None:
+            return both_p4                       
 
     def getTruthTTbarP4(self, ievent, afterFSR):
         """
