@@ -353,26 +353,17 @@ def makeHistogramsTRUTH1(
         hists_d['Wm_m'].Fill(Wm_p4.M()/1000., w)
 
         # Leptons
-        #print('ievt = ', ievt)
-        #print('weights =', w)
-        elec_p4 = tpa.getTruthP4_elec(ievt)
-        #print(ievt)            
+        elec_p4 = tpa.getTruthP4_elec(ievt)            
         if elec_p4 is not None:
-            #if len(elec_p4) != 0:
             Pt = []
-            #print('No of entries = ', len(elec_p4))
             for idx in range(len(elec_p4)):
                 Pt.append(elec_p4[idx].Pt())
 
-            #print('Pt =', Pt)
             sorted_Pt = Pt.copy()
             sorted_Pt.sort(reverse=True)
-            #print('Sorted Pt=',sorted_Pt)
             max_Pt = sorted_Pt[0]
             max_index = Pt.index(max_Pt)
             elec_maxPt_p4 = elec_p4[max_index]
-            #print(elec_maxPt_p4)
-            #global_count += 1 
             hists_d['elec_pt'].Fill(elec_maxPt_p4.Pt()/1000., w)
             hists_d['elec_eta'].Fill(elec_maxPt_p4.Eta(), w)
             hists_d['elec_phi'].Fill(elec_maxPt_p4.Phi(), w)
