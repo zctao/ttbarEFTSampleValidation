@@ -1,6 +1,6 @@
 # A dictionary of EFT operators: dict[operator name] = (block, id, [values])
 eft_dict = {
-    'ctGRe':  ('SMEFT', 15, [-0.1,0.2,0.5, 0.8]),
+    'ctGRe':  ('SMEFT', 15, [-0.8,-0.5,-0.2, 0.2]),
     'ctWRe':  ('SMEFT', 17, [-1.1,-0.7,0.7,1.1]),
     'ctBRe':  ('SMEFT', 19, [-0.9,-0.3,0.3,0.9]),
     'cHQ1':   ('SMEFT', 27, [-5,-1,1,5]),
@@ -39,7 +39,7 @@ eft_dict = {
     'ctl11':  ('SMEFT', 166, [-2.4,-1,1,3]),
     'ctl22':  ('SMEFT', 167, [-3,-1,1,5]),
     'ctl33':  ('SMEFT', 168, [-5,-1,1,5]),
-    'ctGIm':  ('SMEFTcpv', 8, [-0.1,0.2,0.5, 0.8]),
+    'ctGIm':  ('SMEFTcpv', 8, [-0.8,-0.5,-0.2, 0.2]),
     'ctWIm':  ('SMEFTcpv', 10, [-1.4,-0.8,0.6,1.2]),
     'ctBIm':  ('SMEFTcpv', 12, [-1.8,-0.6,0.6,1.8]),
 }
