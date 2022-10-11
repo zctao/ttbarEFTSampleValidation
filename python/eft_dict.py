@@ -1,11 +1,14 @@
 # A dictionary of EFT operators: dict[operator name] = (block, id, [values])
 eft_dict = {
+    'cG':     ('SMEFT', 1,  [-0.5,-0.3,0.3,0.5]),
     'ctGRe':  ('SMEFT', 15, [-0.8,-0.5,-0.2, 0.2]),
     'ctWRe':  ('SMEFT', 17, [-1.1,-0.7,0.7,1.1]),
     'ctBRe':  ('SMEFT', 19, [-0.9,-0.3,0.3,0.9]),
+    'cbWRe':  ('SMEFT', 23, [-4.0,-1.0,1.0,4.0]),
     'cHQ1':   ('SMEFT', 27, [-5,-1,1,5]),
     'cHQ3':   ('SMEFT', 29, [-5,-1,1,5]),
     'cHt':    ('SMEFT', 31, [-5,-1,1,5]),
+    'cHtbRe': ('SMEFT', 35, [-5,-1,1,5]),
     'cQj11':  ('SMEFT', 40, [-0.5,-0.3,0.3,0.5]),
     'cQj18':  ('SMEFT', 41, [-1.3,-0.9,0.3,0.7]),
     'cQj31':  ('SMEFT', 42, [-0.5,-0.4,0.3,0.5]),
@@ -42,5 +45,7 @@ eft_dict = {
     'ctGIm':  ('SMEFTcpv', 8, [-1.5,-0.7,0.7,1.5]),
     'ctWIm':  ('SMEFTcpv', 10, [-1.4,-0.8,0.6,1.2]),
     'ctBIm':  ('SMEFTcpv', 12, [-1.8,-0.6,0.6,1.8]),
+    'cbWIm':  ('SMEFTcpv', 16, [-4.0,-1.0,1.0,4.0]),
+    'cHtbIm': ('SMEFTcpv', 24, [-5,-1,1,5]),
 }
     
