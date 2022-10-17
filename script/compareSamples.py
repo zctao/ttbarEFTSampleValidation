@@ -252,7 +252,7 @@ def makeHistogramsTRUTH1(
     t_start = time.time()
     sumw = 0.
     for ievt in range( len(tpa) ):
-        #if ievt > 2:
+        #if ievt > 10:
         #    break
 
         if not ievt%10000:
@@ -353,26 +353,20 @@ def makeHistogramsTRUTH1(
         hists_d['Wm_m'].Fill(Wm_p4.M()/1000., w)
 
         # Leptons
-        elec_p4 = tpa.getTruthP4_elec(ievt)            
+        #print('ievt = ', ievt)
+        elec_p4 = tpa.getTruthP4_elec(ievt)           
         if elec_p4 is not None:
-            Pt = []
-            for idx in range(len(elec_p4)):
-                Pt.append(elec_p4[idx].Pt())
+            sorted_elec_p4 = sorted(elec_p4, key= lambda x: x.Pt() , reverse=True )
+            elec_maxPt_p4 = sorted_elec_p4[0] 
 
-            sorted_Pt = Pt.copy()
-            sorted_Pt.sort(reverse=True)
-            max_Pt = sorted_Pt[0]
-            max_index = Pt.index(max_Pt)
-            elec_maxPt_p4 = elec_p4[max_index]
             hists_d['elec_pt'].Fill(elec_maxPt_p4.Pt()/1000., w)
             hists_d['elec_eta'].Fill(elec_maxPt_p4.Eta(), w)
             hists_d['elec_phi'].Fill(elec_maxPt_p4.Phi(), w)
             hists_d['elec_m'].Fill(elec_maxPt_p4.M()/1000., w)
 
-            if len(sorted_Pt) > 1:
-                next_max_Pt = sorted_Pt[1]
-                next_max_index = Pt.index(next_max_Pt)
-                elec_next_maxPt_p4 = elec_p4[next_max_index]
+            if len(elec_p4) > 1:
+                elec_next_maxPt_p4 = sorted_elec_p4[1]
+                
                 hists_d['next_elec_pt'].Fill(elec_next_maxPt_p4.Pt()/1000., w)
                 hists_d['next_elec_eta'].Fill(elec_next_maxPt_p4.Eta(), w)
                 hists_d['next_elec_phi'].Fill(elec_next_maxPt_p4.Phi(), w)
@@ -380,25 +374,18 @@ def makeHistogramsTRUTH1(
 
         #muons
         muon_p4 = tpa.getTruthP4_muon(ievt)            
-        if muon_p4 is not None:
-            Pt = []
-            for idx in range(len(muon_p4)):
-                Pt.append(muon_p4[idx].Pt())
+        if muon_p4 is not None:            
+            sorted_muon_p4 = sorted(muon_p4, key= lambda x: x.Pt() , reverse=True )            
+            muon_maxPt_p4 = sorted_muon_p4[0]
 
-            sorted_Pt = Pt.copy()
-            sorted_Pt.sort(reverse=True)
-            max_Pt = sorted_Pt[0]
-            max_index = Pt.index(max_Pt)
-            muon_maxPt_p4 = muon_p4[max_index]
             hists_d['muon_pt'].Fill(muon_maxPt_p4.Pt()/1000., w)
             hists_d['muon_eta'].Fill(muon_maxPt_p4.Eta(), w)
             hists_d['muon_phi'].Fill(muon_maxPt_p4.Phi(), w)
             hists_d['muon_m'].Fill(muon_maxPt_p4.M()/1000., w)
 
-            if len(sorted_Pt) > 1:
-                next_max_Pt = sorted_Pt[1]
-                next_max_index = Pt.index(next_max_Pt)
-                muon_next_maxPt_p4 = muon_p4[next_max_index]
+            if len(muon_p4) > 1:
+                muon_next_maxPt_p4 = sorted_muon_p4[1]
+
                 hists_d['next_muon_pt'].Fill(muon_next_maxPt_p4.Pt()/1000., w)
                 hists_d['next_muon_eta'].Fill(muon_next_maxPt_p4.Eta(), w)
                 hists_d['next_muon_phi'].Fill(muon_next_maxPt_p4.Phi(), w)
@@ -407,32 +394,22 @@ def makeHistogramsTRUTH1(
 
         #both
         both_p4 = tpa.getTruthP4_both(ievt)            
-        if both_p4 is not None:
-            Pt = []
-            for idx in range(len(both_p4)):
-                Pt.append(both_p4[idx].Pt())
+        if both_p4 is not None:            
+            sorted_both_p4 = sorted(both_p4, key= lambda x: x.Pt() , reverse=True )            
+            both_maxPt_p4 = sorted_both_p4[0]
 
-            sorted_Pt = Pt.copy()
-            sorted_Pt.sort(reverse=True)
-            max_Pt = sorted_Pt[0]
-            max_index = Pt.index(max_Pt)
-            both_maxPt_p4 = both_p4[max_index]
             hists_d['lep_pt'].Fill(both_maxPt_p4.Pt()/1000., w)
             hists_d['lep_eta'].Fill(both_maxPt_p4.Eta(), w)
             hists_d['lep_phi'].Fill(both_maxPt_p4.Phi(), w)
             hists_d['lep_m'].Fill(both_maxPt_p4.M()/1000., w)
 
-            if len(sorted_Pt) > 1:
-                next_max_Pt = sorted_Pt[1]
-                next_max_index = Pt.index(next_max_Pt)
-                both_next_maxPt_p4 = both_p4[next_max_index]
+            if len(both_p4) > 1:
+                both_next_maxPt_p4 = sorted_both_p4[1]
                 hists_d['next_lep_pt'].Fill(both_next_maxPt_p4.Pt()/1000., w)
                 hists_d['next_lep_eta'].Fill(both_next_maxPt_p4.Eta(), w)
                 hists_d['next_lep_phi'].Fill(both_next_maxPt_p4.Phi(), w)
-                hists_d['next_lep_m'].Fill(both_next_maxPt_p4.M()/1000., w)               
+                hists_d['next_lep_m'].Fill(both_next_maxPt_p4.M()/1000., w)    
             
-                        
-        
 
         # Event weights for low and high top pT
         if t_p4_before.Pt()/1000. < 700.:
