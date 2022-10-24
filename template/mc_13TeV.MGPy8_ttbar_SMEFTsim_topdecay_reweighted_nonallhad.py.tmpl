@@ -10,6 +10,9 @@ selected_operators = [
     'ctGIm', 'cbWIm', 'ctWIm', 'cHtbIm',
     ]
 
+# The combination strategy for activating two operators simultaneously
+combinaton_strategy = 'first20'
+
 # Process
 process_definition ="""generate p p > t t~ QCD=2, (t > w+ b, w+ > l+ vl NP=0), (t~ > w- b~, w- > j j NP=0) SMHLOOP=0 NPprop=0 NP=1
 add process p p > t t~ QCD=2, (t > w+ b, w+ > j j NP=0), (t~ > w- b~, w- > l- vl~ NP=0) SMHLOOP=0 NPprop=0 NP=1
