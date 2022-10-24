@@ -1,0 +1,29 @@
+# EFT operators
+# A list of SMEFTsim operators (must be a subset of the keys of eft_dict)
+selected_operators = [
+    # Top production
+    'ctGRe', 'ctj1', 'cQd1', 'cQu1', 'ctj8', 'cQd8', 'cQu8', 'ctd1', 'ctu1',
+    'cQj11', 'cQj31', 'ctd8', 'ctu8', 'cQj38', 'cQj18', 'cG',
+    # Decay
+    'cbWRe', 'ctWRe', 'cHtbRe', 'cHQ3',
+    # CPV
+    'ctGIm', 'cbWIm', 'ctWIm', 'cHtbIm',
+    ]
+
+# Process
+process_definition ="""generate p p > t t~ QCD=2, (t > w+ b, w+ > l+ vl NP=0), (t~ > w- b~, w- > j j NP=0) SMHLOOP=0 NPprop=0 NP=1
+add process p p > t t~ QCD=2, (t > w+ b, w+ > j j NP=0), (t~ > w- b~, w- > l- vl~ NP=0) SMHLOOP=0 NPprop=0 NP=1
+add process p p > t t~ QCD=2, (t > w+ b, w+ > l+ vl NP=0), (t~ > w- b~, w- > l- vl~ NP=0) SMHLOOP=0 NPprop=0 NP=1
+"""
+
+# General parameters
+safety_factor = 1.1
+
+fixed_scale = fixed_scale = 345. # ~ m(top)+m(top)
+
+gridpack = False
+
+# Metadata
+evgenConfig.description = "SMEFTsim 3.0 tt, nonallhad, top model, reweighted, EFT vertices, no propagator correction, EFT in top decay"
+
+include("TEMPLATE_INSERT_CONTROL_PY")
