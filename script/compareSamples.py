@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3 
 import os
 import math
 import time
@@ -150,6 +150,82 @@ def setupHistograms(label):
     histograms["Wm_m"] = TH1F(f"h_Wm_m_{label}", "W- mass", 100, 0., 250.)
     histograms["Wm_m"].GetXaxis().SetTitle("m^{W^{-}} [GeV]")
 
+    #  electrons
+    histograms["elec_pt"] = TH1F(f"h_elec_pt_{label}", "e pT", 100, 0., 100.)
+    histograms["elec_pt"].GetXaxis().SetTitle("p_{T}^{e} [GeV]")
+
+    histograms["elec_eta"] = TH1F(f"h_elec_eta_{label}", "e eta", 100, -5, 5.)
+    histograms["elec_eta"].GetXaxis().SetTitle("#eta^{e}")
+
+    histograms["elec_phi"] = TH1F(f"h_elec_phi_{label}", "e phi", 100, -math.pi, math.pi)
+    histograms["elec_phi"].GetXaxis().SetTitle("#phi^{e}")
+
+    histograms["elec_m"] = TH1F(f"h_elec_m_{label}", "e mass", 50, 0., 50.)
+    histograms["elec_m"].GetXaxis().SetTitle("m^{e} [GeV]")
+
+    histograms["next_elec_pt"] = TH1F(f"h_next_elec_pt_{label}", "e pT", 100, 0., 100.)
+    histograms["next_elec_pt"].GetXaxis().SetTitle("p_{T}^{e} [GeV]")
+
+    histograms["next_elec_eta"] = TH1F(f"h_next_elec_eta_{label}", "e eta", 100, -5, 5.)
+    histograms["next_elec_eta"].GetXaxis().SetTitle("#eta^{e}")
+
+    histograms["next_elec_phi"] = TH1F(f"h_next_elec_phi_{label}", "e phi", 100, -math.pi, math.pi)
+    histograms["next_elec_phi"].GetXaxis().SetTitle("#phi^{e}")
+
+    histograms["next_elec_m"] = TH1F(f"h_next_elec_m_{label}", "e mass", 50, 0., 50.)
+    histograms["next_elec_m"].GetXaxis().SetTitle("m^{e} [GeV]")
+
+    #muons
+    histograms["muon_pt"] = TH1F(f"h_muon_pt_{label}", "#mu pT", 100, 0., 100.)
+    histograms["muon_pt"].GetXaxis().SetTitle("p_{T}^{#mu} [GeV]")
+
+    histograms["muon_eta"] = TH1F(f"h_muon_eta_{label}", "#mu eta", 100, -5, 5.)
+    histograms["muon_eta"].GetXaxis().SetTitle("#eta^{#mu}")
+
+    histograms["muon_phi"] = TH1F(f"h_muon_phi_{label}", "#mu phi", 100, -math.pi, math.pi)
+    histograms["muon_phi"].GetXaxis().SetTitle("#phi^{#mu}")
+
+    histograms["muon_m"] = TH1F(f"h_muon_m_{label}", "#mu mass", 50, 0., 50.)
+    histograms["muon_m"].GetXaxis().SetTitle("m^{#mu} [GeV]")
+
+    histograms["next_muon_pt"] = TH1F(f"h_next_muon_pt_{label}", "#mu pT", 100, 0., 100.)
+    histograms["next_muon_pt"].GetXaxis().SetTitle("p_{T}^{#mu} [GeV]")
+
+    histograms["next_muon_eta"] = TH1F(f"h_next_muon_eta_{label}", "#mu eta", 100, -5, 5.)
+    histograms["next_muon_eta"].GetXaxis().SetTitle("#eta^{#mu}")
+
+    histograms["next_muon_phi"] = TH1F(f"h_next_muon_phi_{label}", "#mu phi", 100, -math.pi, math.pi)
+    histograms["next_muon_phi"].GetXaxis().SetTitle("#phi^{#mu}")
+
+    histograms["next_muon_m"] = TH1F(f"h_next_muon_m_{label}", "#mu mass", 50, 0., 50.)
+    histograms["next_muon_m"].GetXaxis().SetTitle("m^{#mu} [GeV]")
+
+    #Both leptons
+    histograms["lep_pt"] = TH1F(f"h_lep_pt_{label}", "lep pT", 100, 0., 100.)
+    histograms["lep_pt"].GetXaxis().SetTitle("p_{T}^{lep} [GeV]")
+
+    histograms["lep_eta"] = TH1F(f"h_lep_eta_{label}", "lep eta", 100, -5, 5.)
+    histograms["lep_eta"].GetXaxis().SetTitle("#eta^{lep}")
+
+    histograms["lep_phi"] = TH1F(f"h_lep_phi_{label}", "lep phi", 100, -math.pi, math.pi)
+    histograms["lep_phi"].GetXaxis().SetTitle("#phi^{lep}")
+
+    histograms["lep_m"] = TH1F(f"h_lep_m_{label}", "lep mass", 50, 0., 50.)
+    histograms["lep_m"].GetXaxis().SetTitle("m^{lep} [GeV]")
+
+    histograms["next_lep_pt"] = TH1F(f"h_next_lep_pt_{label}", "lep pT", 100, 0., 100.)
+    histograms["next_lep_pt"].GetXaxis().SetTitle("p_{T}^{lep} [GeV]")
+
+    histograms["next_lep_eta"] = TH1F(f"h_next_lep_eta_{label}", "lep eta", 100, -5, 5.)
+    histograms["next_lep_eta"].GetXaxis().SetTitle("#eta^{lep}")
+
+    histograms["next_lep_phi"] = TH1F(f"h_next_lep_phi_{label}", "lep phi", 100, -math.pi, math.pi)
+    histograms["next_lep_phi"].GetXaxis().SetTitle("#phi^{lep}")
+
+    histograms["next_lep_m"] = TH1F(f"h_next_lep_m_{label}", "lep mass", 50, 0., 50.)
+    histograms["next_lep_m"].GetXaxis().SetTitle("m^{lep} [GeV]")
+
+
     for hkey, hobj in histograms.items():
         hobj.Sumw2()
 
@@ -176,6 +252,9 @@ def makeHistogramsTRUTH1(
     t_start = time.time()
     sumw = 0.
     for ievt in range( len(tpa) ):
+        # if ievt > 1000:
+        #    break
+
         if not ievt%10000:
             print(f"Processing event #{ievt}")
 
@@ -273,6 +352,73 @@ def makeHistogramsTRUTH1(
         hists_d['Wm_phi'].Fill(Wm_p4.Phi(), w)
         hists_d['Wm_m'].Fill(Wm_p4.M()/1000., w)
 
+        # Leptons
+        #print('ievt = ', ievt)
+        elec_p4 = tpa.getTruthP4_elec(ievt)           
+        if elec_p4 is not None:
+            #print('elec = ', len(elec_p4))
+            sorted_elec_p4 = sorted(elec_p4, key= lambda x: x.Pt() , reverse=True )
+            #print(len(sorted_elec_p4))
+            elec_maxPt_p4 = sorted_elec_p4[0] 
+
+            hists_d['elec_pt'].Fill(elec_maxPt_p4.Pt()/1000., w)
+            hists_d['elec_eta'].Fill(elec_maxPt_p4.Eta(), w)
+            hists_d['elec_phi'].Fill(elec_maxPt_p4.Phi(), w)
+            hists_d['elec_m'].Fill(elec_maxPt_p4.M()/1000., w)
+
+            if len(elec_p4) > 1:
+                elec_next_maxPt_p4 = sorted_elec_p4[1]
+                
+                hists_d['next_elec_pt'].Fill(elec_next_maxPt_p4.Pt()/1000., w)
+                hists_d['next_elec_eta'].Fill(elec_next_maxPt_p4.Eta(), w)
+                hists_d['next_elec_phi'].Fill(elec_next_maxPt_p4.Phi(), w)
+                hists_d['next_elec_m'].Fill(elec_next_maxPt_p4.M()/1000., w)  
+
+        #muons
+        muon_p4 = tpa.getTruthP4_muon(ievt)            
+        if muon_p4 is not None:
+            #print(len(muon_p4))
+            sorted_muon_p4 = sorted(muon_p4, key= lambda x: x.Pt() , reverse=True )
+            #print(len(sorted_muon_p4))
+            muon_maxPt_p4 = sorted_muon_p4[0]
+
+            hists_d['muon_pt'].Fill(muon_maxPt_p4.Pt()/1000., w)
+            hists_d['muon_eta'].Fill(muon_maxPt_p4.Eta(), w)
+            hists_d['muon_phi'].Fill(muon_maxPt_p4.Phi(), w)
+            hists_d['muon_m'].Fill(muon_maxPt_p4.M()/1000., w)
+
+            if len(muon_p4) > 1:
+                muon_next_maxPt_p4 = sorted_muon_p4[1]
+
+                hists_d['next_muon_pt'].Fill(muon_next_maxPt_p4.Pt()/1000., w)
+                hists_d['next_muon_eta'].Fill(muon_next_maxPt_p4.Eta(), w)
+                hists_d['next_muon_phi'].Fill(muon_next_maxPt_p4.Phi(), w)
+                hists_d['next_muon_m'].Fill(muon_next_maxPt_p4.M()/1000., w)  
+
+
+        #both
+        lep_p4 = tpa.getTruthP4_lepton(ievt)            
+        if lep_p4 is not None:
+            #print(len(both_p4))
+            sorted_lep_p4 = sorted(lep_p4, key= lambda x: x.Pt() , reverse=True )
+            #print(len(sorted_both_p4))
+            lep_maxPt_p4 = sorted_lep_p4[0]
+
+            hists_d['lep_pt'].Fill(lep_maxPt_p4.Pt()/1000., w)
+            hists_d['lep_eta'].Fill(lep_maxPt_p4.Eta(), w)
+            hists_d['lep_phi'].Fill(lep_maxPt_p4.Phi(), w)
+            hists_d['lep_m'].Fill(lep_maxPt_p4.M()/1000., w)
+
+            if len(lep_p4) > 1:
+                lep_next_maxPt_p4 = sorted_lep_p4[1]
+                hists_d['next_lep_pt'].Fill(lep_next_maxPt_p4.Pt()/1000., w)
+                hists_d['next_lep_eta'].Fill(lep_next_maxPt_p4.Eta(), w)
+                hists_d['next_lep_phi'].Fill(lep_next_maxPt_p4.Phi(), w)
+                hists_d['next_lep_m'].Fill(lep_next_maxPt_p4.M()/1000., w)        
+            
+                        
+        
+
         # Event weights for low and high top pT
         if t_p4_before.Pt()/1000. < 700.:
             hists_d['weights_lowpt'].Fill(w)
@@ -283,7 +429,6 @@ def makeHistogramsTRUTH1(
 
     t_done = time.time()
     print(f"Total processing time: {t_done - t_start:.2f} seconds")
-
     return hists_d
 
 def plotHistograms(figname, hist1, hist2, label1, label2, title, canvas=None):
@@ -451,3 +596,4 @@ if __name__ == "__main__":
         os.makedirs(args.outputdir)
 
     compareSamples(args.infiles[0], args.infiles[1], args.name, args.outputdir)
+
