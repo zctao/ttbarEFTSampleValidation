@@ -2,13 +2,31 @@
 
 # TO USE THIS CONTROL FILE:
 # - create a separate JO for your process, e.g. mc.MGPy8_ttll_SMEFTsim_reweighted.py
-# - declare "selected_operators", a list of SMEFTsim operators that is a subset of the keys of the "eft_dict" below
-# - declare "process_definition", a string that will be appended to "process" below and MUST contain at least the relevant MG generate command
-# - declare "safety_factor", a float as a scale factor to determine the actual number of events to generate. Without any filter, safety_factor = 1.1 is a good choice. With an event filter, set safety_factor to at least 1/filter_efficiency
-# - declare "fixed_scale", a float to fix muR=muF (because MG doesn't run the WCs). Recommended: = sum(masses)_{final state particles}
-# - declare "gridpack", a bool indicating whether generation (and possibly reweighting) is to be run from a gridpack
-# - declare "evgenConfig.description", a sufficiently descriptive string for the sample metadata,
-#                                      e.g. 'SMEFTsim 3.0 tt+ll, top model, inclusive, reweighted, EFT vertices, no propagator correction'
+# - declare "selected_operators":
+#    A list of SMEFTsim operators that is a subset of the keys of the "eft_dict" below
+#
+# - declare "combinaton_strategy":
+#    A string to determine the combination strategy for activating two operators simultaneously. Available options are:
+#    * 'all': for every possible pair of WCs from "selected_operators", take two values from their value ranges and form four reweighting points. Note that in case the number of selected WCs is large (>20), this would result in a large number of weights (>1000) in the reweighted sample
+#    * 'first20': same as 'all' except only the first 20 operators in the list are considered for the combination to avoid going beyond 1000 weights
+#    * 'first30_2rwpoints': similar to 'all' but only the first 30 operators in the list are included for the combination, and for each pair only two reweighting points are assigned instead of four.
+#    * 'customize': to use this strategy, another list 'selected_operators_comb' has to be defined. The combination will only use the operators in the 'selected_operators_comb', and for each pair four reweighting points are assigned.
+#
+# - declare "process_definition":
+#    A string that will be appended to "process" below and MUST contain at least the relevant MG generate command
+#
+# - declare "safety_factor":
+#    A float as a scale factor to determine the actual number of events to generate. Without any filter, safety_factor = 1.1 is a good choice. With an event filter, set safety_factor to at least 1/filter_efficiency
+#
+# - declare "fixed_scale":
+#    A float to fix muR=muF (because MG doesn't run the WCs). Recommended: = sum(masses)_{final state particles}
+#
+# - declare "gridpack":
+#    A bool indicating whether generation (and possibly reweighting) is to be run from a gridpack
+#
+# - declare "evgenConfig.description":
+#    A sufficiently descriptive string for the sample metadata, e.g. 'SMEFTsim 3.0 tt+ll, top model, inclusive, reweighted, EFT vertices, no propagator correction'
+#
 # - include this file, using the appropriate relative path
 
 from MadGraphControl.MadGraphUtils import *
@@ -23,9 +41,9 @@ mllcut      = 5
 lhe_version = 3
 
 # process definition
-model = "SMEFTsim_top_MwScheme_UFO-massless"
+model = "SMEFTsim_top_MwScheme_UFO-massless_topX"
 if "_prop" in get_physics_short():
-    model = "SMEFTsim_top_MwScheme_PropCorr_UFO-massless"
+    model = "SMEFTsim_top_MwScheme_PropCorr_UFO-massless_topX"
 
 process = '''
 import model ''' + model + '''
@@ -68,11 +86,6 @@ modify_run_card(process_dir=process_dir,
                 settings=settings)
 
 # param card settings
-# First copy the "restricted" parameter card param_card_massless.dat provided in the SMEFTsim model UFO, so all Wilson coefficients are set to 0.
-mg_model_dir="/cvmfs/atlas.cern.ch/repo/sw/Generators/madgraph/models/latest"
-model_name = model.replace("-massless","")
-card_name = os.path.join(mg_model_dir, model_name, "param_card_massless.dat")
-shutil.copyfile(card_name, os.path.join(process_dir,"Cards/param_card.dat"))
 
 # SM param card settings
 params = dict()
@@ -121,24 +134,36 @@ for operator in selected_operators:
     for value in eft_dict[operator][2]:
         reweight_commands += "launch --rwgt_info=" + operator + "_" + value_to_string(value) + "\n"
         reweight_commands += "set "+ block + " " +str(idnumber) + " " + str(value) + "\n"
-for i,operator1 in enumerate(selected_operators):
+
+# Activate two operators simultaneously
+operators_for_combination = selected_operators # default 'all'
+if combinaton_strategy == 'first20':
+    iend = min(20, len(selected_operators))
+    operators_for_combination = selected_operators[:iend]
+elif combinaton_strategy == 'first30_2rwpoints':
+    iend = min(30, len(selected_operators))
+    operators_for_combination = selected_operators[:iend]
+elif combinaton_strategy == 'customize':
+    operators_for_combination = selected_operators_comb
+
+for i,operator1 in enumerate(operators_for_combination):
     block1, idnumber1, valrange1 = eft_dict[operator1]
-    for operator2 in selected_operators[i+1:]:
+    for operator2 in operators_for_combination[i+1:]:
         block2, idnumber2, valrange2 = eft_dict[operator2]
-        # avoid going beyond 1000 weights if possible
-        if len(selected_operators) <= 20:
-            # Four combinations for each pair of WCs
+
+        if combinaton_strategy in ['first30_2rwpoints']:
+            # Two reweighting points for each pair of WCs
+            for value1, value2 in zip(valrange1[1:3], valrange2[1:3]):
+                reweight_commands += "launch --rwgt_info=" + operator1 + "_" + value_to_string(value1) + "_" + operator2 + "_" + value_to_string(value2) + "\n"
+                reweight_commands += "set "+ block1 + " " + str(idnumber1) + " " + str(value1) + "\n"
+                reweight_commands += "set "+ block2 + " " + str(idnumber2) + " " + str(value2) + "\n"
+        else:
+            # Four reweighting points for each pair of WCs
             for value1 in valrange1[1:3]: # the middle two in the value list
                 for value2 in valrange2[1:3]: # the middle two in the value list
                     reweight_commands += "launch --rwgt_info=" + operator1 + "_" + value_to_string(value1) + "_" + operator2 + "_" + value_to_string(value2) + "\n"
                     reweight_commands += "set "+ block1 + " " + str(idnumber1) + " " + str(value1) + "\n"
                     reweight_commands += "set "+ block2 + " " + str(idnumber2) + " " + str(value2) + "\n"
-        else:
-            value1 = valrange1[1]
-            value2 = valrange2[2]
-            reweight_commands += "launch --rwgt_info=" + operator1 + "_" + value_to_string(value1) + "_" + operator2 + "_" + value_to_string(value2) + "\n"
-            reweight_commands += "set "+ block1 + " " + str(idnumber1) + " " + str(value1) + "\n"
-            reweight_commands += "set "+ block2 + " " + str(idnumber2) + " " + str(value2) + "\n"
 
 # write to reweight card
 reweight_card   = process_dir+'/Cards/reweight_card.dat'
