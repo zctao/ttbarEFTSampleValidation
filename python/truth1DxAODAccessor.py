@@ -49,7 +49,7 @@ class TruthParticleAccessor():
         """
         truth_particles = self.truth_particles_arr[ievent]
 
-        for i, pid in enumerate(truth_particles["TruthParticlesAux.pdgId"]):
+        for i, pid in enumerate(truth_particles["TruthParticlesAux.pdgId"]):            
             if pid != pdgid:
                 continue
 
@@ -71,6 +71,43 @@ class TruthParticleAccessor():
 
         return None
 
+    def getTruthParticleP4Array(self, ievent, pdgid, status):
+        """
+        Return the Lorentz vector of the specified truth particle
+        (ROOT.Math.PxPyPzMVector)
+        """
+        truth_particles = self.truth_particles_arr[ievent]
+        full_p4 = []        
+
+        for i, pid in enumerate(truth_particles["TruthParticlesAux.pdgId"]):    
+            if isinstance(pdgid, int):
+                if abs(pid) != pdgid:
+                    continue
+            else:
+                if abs(pid) not in pdgid:
+                    continue
+
+            # check status
+            st = truth_particles["TruthParticlesAux.status"][i]
+            if st != status:
+                continue
+
+            # found the particle
+            # construct Lorentz Vector
+            p4 = ROOT.Math.PxPyPzMVector(
+                truth_particles["TruthParticlesAux.px"][i],
+                truth_particles["TruthParticlesAux.py"][i],
+                truth_particles["TruthParticlesAux.pz"][i],
+                truth_particles["TruthParticlesAux.m"][i]
+                )
+            
+            full_p4.append(p4)
+
+        if len(full_p4) == 0:
+            return None     
+
+        return full_p4
+
     def getTruthP4_top(self, ievent, afterFSR):
         status = 62 if afterFSR else 22 # Pythia 8 only
         return self.getTruthParticleP4(ievent, 6, status)
@@ -86,6 +123,20 @@ class TruthParticleAccessor():
     def getTruthP4_Wm(self, ievent):
         status = 22 # Pythia 8 only
         return self.getTruthParticleP4(ievent, -24, status)
+   
+    def getTruthP4_elec(self, ievent):
+        status = 1 # Pythia 8 only
+        return self.getTruthParticleP4Array(ievent, 11, status)    
+
+    def getTruthP4_muon(self, ievent):
+        status = 1 # Pythia 8 only
+        return self.getTruthParticleP4Array(ievent, 13, status)
+        
+
+    def getTruthP4_lepton(self, ievent):
+        status = 1 # Pythia 8 only
+        return self.getTruthParticleP4Array(ievent, [11,13], status)
+                             
 
     def getTruthTTbarP4(self, ievent, afterFSR):
         """
