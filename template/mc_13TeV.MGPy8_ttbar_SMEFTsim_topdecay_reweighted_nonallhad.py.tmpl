@@ -10,8 +10,16 @@ selected_operators = [
     'ctGIm', 'cbWIm', 'ctWIm', 'cHtbIm',
     ]
 
+# Another list of operators as per "customize" job option. 
+selected_operators_comb = [
+    # Top production
+    'ctGRe', 'cQj18', 'cQj38', 'ctu8', 'ctd8', 'cQu8', 'cQd8', 'ctj8',
+    # Decay
+    'cbWRe', 'ctWRe', 'cHtbRe', 'cHQ3', 'cQj31'
+    ]
+
 # The combination strategy for activating two operators simultaneously
-combinaton_strategy = 'first20'
+combinaton_strategy = 'customize'
 
 # Process
 process_definition ="""generate p p > t t~ QCD=2, (t > w+ b, w+ > l+ vl NP=0), (t~ > w- b~, w- > j j NP=0) SMHLOOP=0 NPprop=0 NP=1
