@@ -1,0 +1,122 @@
+from MadGraphControl.MadGraphUtils import *
+from MCJobOptionUtils.JOsupport import get_physics_short
+
+# general parameters
+nevents     = runArgs.maxEvents if runArgs.maxEvents>0 else evgenConfig.nEventsPerJob
+nevents    *= 1.1 # safety factor
+mllcut      = 5
+lhe_version = 3
+
+fixed_scale = 345. # ~ m(top)+m(top)
+gridpack = False
+evgenConfig.description = 'SMEFTsim 3.0 tt, top model, nonallhad, standalone, EFT vertices, no propagator correction'
+
+# process definition
+model = "SMEFTsim_top_MwScheme_UFO-massless_topX"
+if "_prop" in get_physics_short():
+    model = "SMEFTsim_top_MwScheme_PropCorr_UFO-massless_topX"
+
+process = '''
+import model ''' + model + '''
+define p = g u c d s b u~ c~ d~ s~ b~
+define j = g u c d s b u~ c~ d~ s~ b~
+define w = w+ w-
+define l+ = e+ mu+ ta+
+define l- = e- mu- ta-
+define wdec = l+ l- vl vl~ j
+generate p p > t t~ QCD=2, (t > w+ b, w+ > l+ vl NP=0), (t~ > w- b~, w- > j j NP=0) SMHLOOP=0 NPprop=0 NP=1
+add process p p > t t~ QCD=2, (t > w+ b, w+ > j j NP=0), (t~ > w- b~, w- > l- vl~ NP=0) SMHLOOP=0 NPprop=0 NP=1
+add process p p > t t~ QCD=2, (t > w+ b, w+ > l+ vl NP=0), (t~ > w- b~, w- > l- vl~ NP=0) SMHLOOP=0 NPprop=0 NP=1
+output -f
+'''
+process_dir = new_process(process)
+
+# run card settings
+settings = {
+    'nevents'               : nevents,
+    'maxjetflavor'          : 5,
+    'pdlabel'               : 'lhapdf',
+    'lhaid'                 : 262000,
+    'use_syst'              : 'False',
+    'ptj'                   : '0.0',
+    'ptl'                   : '0.0',
+    'etaj'                  : '-1.0',
+    'etal'                  : '-1.0',
+    'drjj'                  : '0.0',
+    'drll'                  : '0.0',
+    'drjl'                  : '0.0',
+    'mmll'                  : mllcut,
+    'dynamical_scale_choice': '0',
+    'fixed_ren_scale'       : 'True',
+    'fixed_fac_scale'       : 'True',
+    'scale'                 : fixed_scale,
+    'dsqrt_q2fact1'         : fixed_scale,
+    'dsqrt_q2fact2'         : fixed_scale,
+}
+
+modify_run_card(process_dir=process_dir,
+                runArgs=runArgs,
+                settings=settings)
+
+# param card settings
+# First copy the "restricted" parameter card param_card_massless.dat provided in the SMEFTsim model UFO, so all Wilson coefficients are set to 0.
+#mg_model_dir="/cvmfs/atlas.cern.ch/repo/sw/Generators/madgraph/models/latest"
+#model_name = model.replace("-massless","")
+#card_name = os.path.join(mg_model_dir, model_name, "param_card_massless.dat")
+#shutil.copyfile(card_name, os.path.join(process_dir,"Cards/param_card.dat"))
+
+# SM param card settings
+params = dict()
+params['mass'] = dict()
+params['mass']['6'] = '1.725000e+02'
+params['mass']['23'] = '9.118760e+01'
+params['mass']['24'] = '8.039900e+01'
+params['mass']['25'] = '1.250000e+02'
+params['yukawa'] = dict()
+params['yukawa']['6'] = '1.725000e+02'
+params['DECAY'] = dict()
+params['DECAY']['23'] = 'DECAY  23   2.495200e+00'
+params['DECAY']['24'] = '''DECAY  24   2.085000e+00
+   3.377000e-01   2   -1   2
+   3.377000e-01   2   -3   4
+   1.082000e-01   2  -11  12
+   1.082000e-01   2  -13  14
+   1.082000e-01   2  -15  16'''
+params['DECAY']['25'] = 'DECAY  25   6.382339e-03'
+
+modify_param_card(process_dir=process_dir,params=params)
+
+# EFT param card settings
+params = dict()
+params['SMEFTcutoff'] = dict()
+params['SMEFTcutoff']['1'] = '1.000000e+03'
+
+# set the WCs
+params['SMEFT'] = dict()
+params['SMEFT']['8'] = '0.5'
+
+modify_param_card(process_dir=process_dir,params=params)
+
+print_cards()
+
+generate(process_dir=process_dir,
+         grid_pack=gridpack,
+         gridpack_compile=False,
+         required_accuracy=0.001,
+         runArgs=runArgs)
+
+outputDS = arrange_output(process_dir=process_dir,
+                          runArgs=runArgs,
+                          saveProcDir=True,
+                          lhe_version=lhe_version)
+
+evgenConfig.contact          = ['noemi.cavalli@cern.ch']
+evgenConfig.generators       = ['MadGraph','EvtGen','Pythia8']
+
+check_reset_proc_number(opts)
+include("Pythia8_i/Pythia8_A14_NNPDF23LO_EvtGen_Common.py")
+include("Pythia8_i/Pythia8_MadGraph.py")
+
+#new lines to avoid crash when no pythia
+#theApp.finalize()
+#theApp.exit()
